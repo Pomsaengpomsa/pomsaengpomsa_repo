@@ -1,13 +1,22 @@
 let wallScale = 0.0;
 let wallSpeed = 1.0 / 600.0; // (기존: 0.008)
 let myCircle;
+
+let grassTexture;
+let brickTexture;
+
+function preload() {
+  grassTexture = loadImage('assets/grass.jpeg');
+  brickTexture = loadImage('assets/brick.jpg');
+}
+
 function setup() {
   createCanvas(800, 600);
   myCircle = new WallFeature(0.9, color(255, 100, 100));
 }
 
 function draw() {
-  background(135, 206, 235); 
+  drawSkyGradient();
   
   let centerY = height / 2;
   let horizonWidthOffset = width * 0.05;
@@ -26,12 +35,7 @@ function draw() {
   let wallWidth = map(wallBottomY, centerY, height, horizonFullWidth, width);
   let wallHeight = wallWidth * (4.0 / 6.0); // 직사각형 비율 4:6
   let wallY = wallBottomY - wallHeight;
-  
-  // 회색 벽 그리기
-  fill(128, 128, 128);
-  stroke(80, 80, 80);
-  strokeWeight(2);
-  rect(width / 2 - wallWidth / 2, wallY, wallWidth, wallHeight);
+  image(brickTexture, width / 2 - wallWidth / 2, wallY, wallWidth, wallHeight);
 
   let wallCenterX = width / 2;
   let wallCenterY = wallY + wallHeight / 2;
@@ -67,5 +71,24 @@ class WallFeature {
     fill(this.fillColor);
     noStroke();
     ellipse(centerX, centerY, diameter, diameter);
+  }
+}
+
+// 하늘 그라데이션 함수
+function drawSkyGradient() {
+  let c3 = color(135, 206, 235);
+  let c2 = color(80, 150, 200);
+  let c1 = color(60, 120, 180);
+
+  for (let y = 0; y < height; y++) { 
+    let inter = map(y, 0, height / 2, 0, 1);
+    let c;
+    if (inter < 0.5) {
+      c = lerpColor(c1, c2, inter * 2);
+    } else {
+      c = lerpColor(c2, c3, (inter - 0.5) * 2);
+    }
+    stroke(c);
+    line(0, y, width, y);
   }
 }
