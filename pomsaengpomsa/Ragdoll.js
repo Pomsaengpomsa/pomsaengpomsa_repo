@@ -7,7 +7,8 @@ class Ragdoll {
     // 신체 부위 크기
     this.headRadius = 25;
     this.torsoWidth = 30;
-    this.torsoHeight = 60;
+    this.upperTorsoHeight = 30;  // 상체 (어깨~허리)
+    this.lowerTorsoHeight = 30;  // 하체 (허리~골반)
     this.upperArmLength = 45;
     this.lowerArmLength = 40;
     this.upperLegLength = 50;
@@ -16,6 +17,8 @@ class Ragdoll {
     
     // 관절 각도 (라디안) - T자 포즈 (양옆 수평)
     this.angles = {
+      neck: 0,              // 목 회전 (위아래)
+      waist: 0,             // 허리 회전 (좌우 굽히기)
       leftShoulder: PI,
       leftElbow: 0,
       rightShoulder: 0,
@@ -37,46 +40,74 @@ class Ragdoll {
   }
   
   updateJoints() {
-    let torsoX = this.x;
-    let torsoY = this.y;
+    // 허리 관절 위치 (중심점)
+    this.joints.waist = {
+      x: this.x,
+      y: this.y
+    };
     
+    // 허리 회전에 따른 상체 오프셋
+    let waistOffsetX = sin(this.angles.waist) * this.upperTorsoHeight;
+    let waistOffsetY = -cos(this.angles.waist) * this.upperTorsoHeight;
+    
+    // 상체 중심 (어깨 위치)
+    let upperTorsoX = this.joints.waist.x + waistOffsetX;
+    let upperTorsoY = this.joints.waist.y + waistOffsetY;
+    
+    // 목 관절 위치
     this.joints.neck = {
-      x: torsoX,
-      y: torsoY - this.torsoHeight / 2
+      x: upperTorsoX,
+      y: upperTorsoY
     };
     
-    // 왼쪽 팔
+    // 목 회전에 따른 머리 위치
+    let neckOffsetX = sin(this.angles.waist + this.angles.neck) * this.headRadius;
+    let neckOffsetY = -cos(this.angles.waist + this.angles.neck) * this.headRadius;
+    
+    this.joints.head = {
+      x: this.joints.neck.x + neckOffsetX,
+      y: this.joints.neck.y + neckOffsetY
+    };
+    
+    // 왼쪽 팔 (상체 회전 적용)
     this.joints.leftShoulder = {
-      x: torsoX - this.torsoWidth / 2,
-      y: torsoY - this.torsoHeight / 2 + 10
+      x: upperTorsoX - this.torsoWidth / 2 * cos(this.angles.waist),
+      y: upperTorsoY - this.torsoWidth / 2 * sin(this.angles.waist)
     };
     
-    let leftElbowX = this.joints.leftShoulder.x + cos(this.angles.leftShoulder) * this.upperArmLength;
-    let leftElbowY = this.joints.leftShoulder.y + sin(this.angles.leftShoulder) * this.upperArmLength;
+    let leftElbowX = this.joints.leftShoulder.x + cos(this.angles.leftShoulder + this.angles.waist) * this.upperArmLength;
+    let leftElbowY = this.joints.leftShoulder.y + sin(this.angles.leftShoulder + this.angles.waist) * this.upperArmLength;
     this.joints.leftElbow = { x: leftElbowX, y: leftElbowY };
     
-    let leftHandX = leftElbowX + cos(this.angles.leftShoulder + this.angles.leftElbow) * this.lowerArmLength;
-    let leftHandY = leftElbowY + sin(this.angles.leftShoulder + this.angles.leftElbow) * this.lowerArmLength;
+    let leftHandX = leftElbowX + cos(this.angles.leftShoulder + this.angles.leftElbow + this.angles.waist) * this.lowerArmLength;
+    let leftHandY = leftElbowY + sin(this.angles.leftShoulder + this.angles.leftElbow + this.angles.waist) * this.lowerArmLength;
     this.joints.leftHand = { x: leftHandX, y: leftHandY };
     
-    // 오른쪽 팔
+    // 오른쪽 팔 (상체 회전 적용)
     this.joints.rightShoulder = {
-      x: torsoX + this.torsoWidth / 2,
-      y: torsoY - this.torsoHeight / 2 + 10
+      x: upperTorsoX + this.torsoWidth / 2 * cos(this.angles.waist),
+      y: upperTorsoY + this.torsoWidth / 2 * sin(this.angles.waist)
     };
     
-    let rightElbowX = this.joints.rightShoulder.x + cos(this.angles.rightShoulder) * this.upperArmLength;
-    let rightElbowY = this.joints.rightShoulder.y + sin(this.angles.rightShoulder) * this.upperArmLength;
+    let rightElbowX = this.joints.rightShoulder.x + cos(this.angles.rightShoulder + this.angles.waist) * this.upperArmLength;
+    let rightElbowY = this.joints.rightShoulder.y + sin(this.angles.rightShoulder + this.angles.waist) * this.upperArmLength;
     this.joints.rightElbow = { x: rightElbowX, y: rightElbowY };
     
-    let rightHandX = rightElbowX + cos(this.angles.rightShoulder + this.angles.rightElbow) * this.lowerArmLength;
-    let rightHandY = rightElbowY + sin(this.angles.rightShoulder + this.angles.rightElbow) * this.lowerArmLength;
+    let rightHandX = rightElbowX + cos(this.angles.rightShoulder + this.angles.rightElbow + this.angles.waist) * this.lowerArmLength;
+    let rightHandY = rightElbowY + sin(this.angles.rightShoulder + this.angles.rightElbow + this.angles.waist) * this.lowerArmLength;
     this.joints.rightHand = { x: rightHandX, y: rightHandY };
+    
+    // 하체 중심 (골반)
+    let lowerTorsoOffsetX = -sin(this.angles.waist) * this.lowerTorsoHeight;
+    let lowerTorsoOffsetY = cos(this.angles.waist) * this.lowerTorsoHeight;
+    
+    let lowerTorsoX = this.joints.waist.x + lowerTorsoOffsetX;
+    let lowerTorsoY = this.joints.waist.y + lowerTorsoOffsetY;
     
     // 왼쪽 다리
     this.joints.leftHip = {
-      x: torsoX - 10,
-      y: torsoY + this.torsoHeight / 2
+      x: lowerTorsoX - 10,
+      y: lowerTorsoY
     };
     
     let leftKneeX = this.joints.leftHip.x + cos(this.angles.leftHip + PI/2) * this.upperLegLength;
@@ -89,8 +120,8 @@ class Ragdoll {
     
     // 오른쪽 다리
     this.joints.rightHip = {
-      x: torsoX + 10,
-      y: torsoY + this.torsoHeight / 2
+      x: lowerTorsoX + 10,
+      y: lowerTorsoY
     };
     
     let rightKneeX = this.joints.rightHip.x + cos(this.angles.rightHip + PI/2) * this.upperLegLength;
@@ -104,6 +135,7 @@ class Ragdoll {
   
   startDrag(mx, my) {
     const draggableJoints = [
+      'head', 'waist',
       'leftElbow', 'leftHand', 
       'rightElbow', 'rightHand',
       'leftKnee', 'leftFoot',
@@ -113,7 +145,9 @@ class Ragdoll {
     for (let jointName of draggableJoints) {
       let joint = this.joints[jointName];
       let d = dist(mx, my, joint.x, joint.y);
-      if (d < this.jointRadius) {
+      // 허리는 약간 큰 드래그 영역 사용
+      let radius = (jointName === 'waist') ? 20 : this.jointRadius;
+      if (d < radius) {
         this.selectedJoint = jointName;
         return true;
       }
@@ -125,6 +159,12 @@ class Ragdoll {
     if (!this.selectedJoint) return;
     
     switch(this.selectedJoint) {
+      case 'head':
+        this.rotateNeck(mx, my);
+        break;
+      case 'waist':
+        this.rotateWaist(mx, my);
+        break;
       case 'leftElbow':
       case 'leftHand':
         this.rotateArm(mx, my, 'left', this.selectedJoint === 'leftHand');
@@ -146,16 +186,36 @@ class Ragdoll {
     this.updateJoints();
   }
   
+  rotateNeck(mx, my) {
+    let neck = this.joints.neck;
+    let angle = atan2(my - neck.y, mx - neck.x) + PI/2;
+    this.angles.neck = angle - this.angles.waist;
+    // 목 회전 제한 (-45도 ~ 45도)
+    this.angles.neck = constrain(this.angles.neck, -PI/4, PI/4);
+  }
+  
+  rotateWaist(mx, my) {
+    let waist = this.joints.waist;
+    let targetAngle = atan2(mx - waist.x, waist.y - my);
+    
+    // 허리 회전 제한 (-30도 ~ 30도)
+    targetAngle = constrain(targetAngle, -PI/6, PI/6);
+    
+    // 부드러운 회전을 위한 보간 (민감도 감소)
+    let lerpAmount = 0.15; // 값이 작을수록 더 부드럽게 움직임
+    this.angles.waist = lerp(this.angles.waist, targetAngle, lerpAmount);
+  }
+  
   rotateArm(mx, my, side, isHand) {
     let shoulder = this.joints[side + 'Shoulder'];
     let elbow = this.joints[side + 'Elbow'];
     
     if (isHand) {
       let elbowAngle = atan2(my - elbow.y, mx - elbow.x);
-      this.angles[side + 'Elbow'] = elbowAngle - this.angles[side + 'Shoulder'];
+      this.angles[side + 'Elbow'] = elbowAngle - this.angles[side + 'Shoulder'] - this.angles.waist;
     } else {
       let shoulderAngle = atan2(my - shoulder.y, mx - shoulder.x);
-      this.angles[side + 'Shoulder'] = shoulderAngle;
+      this.angles[side + 'Shoulder'] = shoulderAngle - this.angles.waist;
     }
   }
   
@@ -181,17 +241,30 @@ class Ragdoll {
     
     push();
     
+    // 팔 그리기
     this.drawLimb(this.joints.leftShoulder, this.joints.leftElbow, this.joints.leftHand);
     this.drawLimb(this.joints.rightShoulder, this.joints.rightElbow, this.joints.rightHand);
     
+    // 몸통 전체 그리기 (허리를 중심으로)
+    push();
+    translate(this.joints.waist.x, this.joints.waist.y);
+    rotate(this.angles.waist);
     fill(255);
     stroke(0);
     strokeWeight(3);
     rectMode(CENTER);
-    rect(this.x, this.y, this.torsoWidth, this.torsoHeight, 5);
+    // 상체와 하체를 합친 전체 몸통
+    let totalTorsoHeight = this.upperTorsoHeight + this.lowerTorsoHeight;
+    rect(0, 0, this.torsoWidth, totalTorsoHeight, 5);
+    pop();
     
-    circle(this.joints.neck.x, this.joints.neck.y - this.headRadius, this.headRadius * 2);
+    // 머리 그리기
+    fill(255);
+    stroke(0);
+    strokeWeight(3);
+    circle(this.joints.head.x, this.joints.head.y, this.headRadius * 2);
     
+    // 다리 그리기
     this.drawLimb(this.joints.leftHip, this.joints.leftKnee, this.joints.leftFoot);
     this.drawLimb(this.joints.rightHip, this.joints.rightKnee, this.joints.rightFoot);
     
@@ -214,6 +287,7 @@ class Ragdoll {
     noStroke();
     
     const joints = [
+      this.joints.head, this.joints.waist,
       this.joints.leftElbow, this.joints.leftHand,
       this.joints.rightElbow, this.joints.rightHand,
       this.joints.leftKnee, this.joints.leftFoot,
@@ -234,6 +308,8 @@ class Ragdoll {
   reset() {
     // T자 포즈로 리셋 (양옆 수평)
     this.angles = {
+      neck: 0,
+      waist: 0,
       leftShoulder: PI,
       leftElbow: 0,
       rightShoulder: 0,

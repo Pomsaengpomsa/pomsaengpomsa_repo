@@ -11,6 +11,8 @@ class PoseManager {
     this.poses.push({
       name: "T자 포즈",
       angles: {
+        neck: 0,
+        waist: 0,
         leftShoulder: PI,
         leftElbow: 0,
         rightShoulder: 0,
@@ -26,6 +28,8 @@ class PoseManager {
     this.poses.push({
       name: "Y자 포즈",
       angles: {
+        neck: 0,
+        waist: 0,
         leftShoulder: PI * 3/4,
         leftElbow: 0,
         rightShoulder: -PI/4,
@@ -41,6 +45,8 @@ class PoseManager {
     this.poses.push({
       name: "점프 포즈",
       angles: {
+        neck: 0,
+        waist: 0,
         leftShoulder: -PI/2,
         leftElbow: 0,
         rightShoulder: -PI/2,
@@ -56,10 +62,114 @@ class PoseManager {
     this.poses.push({
       name: "깍지 포즈",
       angles: {
+        neck: 0,
+        waist: 0,
         leftShoulder: 0,
         leftElbow: PI/2,
         rightShoulder: PI,
         rightElbow: -PI/2,
+        leftHip: 0,
+        leftKnee: 0,
+        rightHip: 0,
+        rightKnee: 0
+      }
+    });
+    
+    // 포즈 5: 인사 포즈 (허리 숙이기)
+    this.poses.push({
+      name: "인사 포즈",
+      angles: {
+        neck: PI/6,        // 목 앞으로 숙임
+        waist: PI/8,       // 허리 앞으로 굽힘
+        leftShoulder: PI,
+        leftElbow: 0,
+        rightShoulder: 0,
+        rightElbow: 0,
+        leftHip: 0,
+        leftKnee: 0,
+        rightHip: 0,
+        rightKnee: 0
+      }
+    });
+    
+    // 포즈 6: 뒤로 젖히기
+    this.poses.push({
+      name: "뒤로 젖히기",
+      angles: {
+        neck: -PI/5,       // 목 뒤로 젖힘
+        waist: -PI/8,      // 허리 뒤로 굽힘
+        leftShoulder: -PI/3,
+        leftElbow: 0,
+        rightShoulder: -PI/3,
+        rightElbow: 0,
+        leftHip: 0,
+        leftKnee: 0,
+        rightHip: 0,
+        rightKnee: 0
+      }
+    });
+    
+    // 포즈 7: 옆으로 기울이기 (왼쪽)
+    this.poses.push({
+      name: "왼쪽 기울이기",
+      angles: {
+        neck: 0,
+        waist: PI/6,       // 허리 왼쪽으로 굽힘
+        leftShoulder: PI/2,
+        leftElbow: 0,
+        rightShoulder: -PI/2,
+        rightElbow: 0,
+        leftHip: 0,
+        leftKnee: 0,
+        rightHip: 0,
+        rightKnee: 0
+      }
+    });
+    
+    // 포즈 8: 고개 갸우뚱
+    this.poses.push({
+      name: "고개 갸우뚱",
+      angles: {
+        neck: PI/4,        // 목 옆으로 기울임
+        waist: 0,
+        leftShoulder: PI * 3/4,
+        leftElbow: -PI/4,
+        rightShoulder: PI/4,
+        rightElbow: 0,
+        leftHip: 0,
+        leftKnee: 0,
+        rightHip: 0,
+        rightKnee: 0
+      }
+    });
+    
+    // 포즈 9: 스트레칭 (허리 + 팔)
+    this.poses.push({
+      name: "스트레칭",
+      angles: {
+        neck: -PI/6,
+        waist: -PI/10,     // 허리 약간 뒤로
+        leftShoulder: -PI/2,
+        leftElbow: 0,
+        rightShoulder: -PI/2,
+        rightElbow: 0,
+        leftHip: 0,
+        leftKnee: 0,
+        rightHip: 0,
+        rightKnee: 0
+      }
+    });
+    
+    // 포즈 10: 한쪽 팔 들기 + 허리 굽히기
+    this.poses.push({
+      name: "한쪽 팔 들기",
+      angles: {
+        neck: 0,
+        waist: PI/8,       // 허리 왼쪽으로
+        leftShoulder: -PI/2,
+        leftElbow: 0,
+        rightShoulder: PI/2,
+        rightElbow: 0,
         leftHip: 0,
         leftKnee: 0,
         rightHip: 0,
@@ -88,6 +198,7 @@ class PoseManager {
     
     // 비교할 주요 관절 점들
     const keyJoints = [
+      'head', 'waist',
       'leftElbow', 'leftHand',
       'rightElbow', 'rightHand',
       'leftKnee', 'leftFoot',
@@ -124,7 +235,9 @@ class PoseManager {
     
     // 신체 부위 크기 (Ragdoll과 동일)
     let torsoWidth = 30;
-    let torsoHeight = 60;
+    let upperTorsoHeight = 30;
+    let lowerTorsoHeight = 30;
+    let headRadius = 25;
     let upperArmLength = 45;
     let lowerArmLength = 40;
     let upperLegLength = 50;
@@ -132,38 +245,64 @@ class PoseManager {
     
     let joints = {};
     
-    // 왼쪽 팔
-    joints.leftShoulder = {
-      x: x - torsoWidth / 2,
-      y: y - torsoHeight / 2 + 10
+    // 허리 관절
+    joints.waist = { x: x, y: y };
+    
+    // 상체 중심
+    let waistOffsetX = sin(angles.waist) * upperTorsoHeight;
+    let waistOffsetY = -cos(angles.waist) * upperTorsoHeight;
+    let upperTorsoX = joints.waist.x + waistOffsetX;
+    let upperTorsoY = joints.waist.y + waistOffsetY;
+    
+    // 목 관절
+    joints.neck = { x: upperTorsoX, y: upperTorsoY };
+    
+    // 머리
+    let neckOffsetX = sin(angles.waist + angles.neck) * headRadius;
+    let neckOffsetY = -cos(angles.waist + angles.neck) * headRadius;
+    joints.head = {
+      x: joints.neck.x + neckOffsetX,
+      y: joints.neck.y + neckOffsetY
     };
     
-    let leftElbowX = joints.leftShoulder.x + cos(angles.leftShoulder) * upperArmLength;
-    let leftElbowY = joints.leftShoulder.y + sin(angles.leftShoulder) * upperArmLength;
+    // 왼쪽 팔
+    joints.leftShoulder = {
+      x: upperTorsoX - torsoWidth / 2 * cos(angles.waist),
+      y: upperTorsoY - torsoWidth / 2 * sin(angles.waist)
+    };
+    
+    let leftElbowX = joints.leftShoulder.x + cos(angles.leftShoulder + angles.waist) * upperArmLength;
+    let leftElbowY = joints.leftShoulder.y + sin(angles.leftShoulder + angles.waist) * upperArmLength;
     joints.leftElbow = { x: leftElbowX, y: leftElbowY };
     
-    let leftHandX = leftElbowX + cos(angles.leftShoulder + angles.leftElbow) * lowerArmLength;
-    let leftHandY = leftElbowY + sin(angles.leftShoulder + angles.leftElbow) * lowerArmLength;
+    let leftHandX = leftElbowX + cos(angles.leftShoulder + angles.leftElbow + angles.waist) * lowerArmLength;
+    let leftHandY = leftElbowY + sin(angles.leftShoulder + angles.leftElbow + angles.waist) * lowerArmLength;
     joints.leftHand = { x: leftHandX, y: leftHandY };
     
     // 오른쪽 팔
     joints.rightShoulder = {
-      x: x + torsoWidth / 2,
-      y: y - torsoHeight / 2 + 10
+      x: upperTorsoX + torsoWidth / 2 * cos(angles.waist),
+      y: upperTorsoY + torsoWidth / 2 * sin(angles.waist)
     };
     
-    let rightElbowX = joints.rightShoulder.x + cos(angles.rightShoulder) * upperArmLength;
-    let rightElbowY = joints.rightShoulder.y + sin(angles.rightShoulder) * upperArmLength;
+    let rightElbowX = joints.rightShoulder.x + cos(angles.rightShoulder + angles.waist) * upperArmLength;
+    let rightElbowY = joints.rightShoulder.y + sin(angles.rightShoulder + angles.waist) * upperArmLength;
     joints.rightElbow = { x: rightElbowX, y: rightElbowY };
     
-    let rightHandX = rightElbowX + cos(angles.rightShoulder + angles.rightElbow) * lowerArmLength;
-    let rightHandY = rightElbowY + sin(angles.rightShoulder + angles.rightElbow) * lowerArmLength;
+    let rightHandX = rightElbowX + cos(angles.rightShoulder + angles.rightElbow + angles.waist) * lowerArmLength;
+    let rightHandY = rightElbowY + sin(angles.rightShoulder + angles.rightElbow + angles.waist) * lowerArmLength;
     joints.rightHand = { x: rightHandX, y: rightHandY };
+    
+    // 하체 중심
+    let lowerTorsoOffsetX = -sin(angles.waist) * lowerTorsoHeight;
+    let lowerTorsoOffsetY = cos(angles.waist) * lowerTorsoHeight;
+    let lowerTorsoX = joints.waist.x + lowerTorsoOffsetX;
+    let lowerTorsoY = joints.waist.y + lowerTorsoOffsetY;
     
     // 왼쪽 다리
     joints.leftHip = {
-      x: x - 10,
-      y: y + torsoHeight / 2
+      x: lowerTorsoX - 10,
+      y: lowerTorsoY
     };
     
     let leftKneeX = joints.leftHip.x + cos(angles.leftHip + PI/2) * upperLegLength;
@@ -176,8 +315,8 @@ class PoseManager {
     
     // 오른쪽 다리
     joints.rightHip = {
-      x: x + 10,
-      y: y + torsoHeight / 2
+      x: lowerTorsoX + 10,
+      y: lowerTorsoY
     };
     
     let rightKneeX = joints.rightHip.x + cos(angles.rightHip + PI/2) * upperLegLength;
@@ -207,17 +346,28 @@ class PoseManager {
     fill(50, 50, 70, 200);
     noStroke();
     rectMode(CENTER);
-    rect(0, 0, 200, 350, 10);
+    rect(0, 0, 200, 380, 10);
     
     // 제목
     fill(255);
     textAlign(CENTER);
     textSize(16);
-    text("목표 포즈", 0, -160);
-    text(this.getCurrentPose().name, 0, -135);
+    text("목표 포즈", 0, -180);
+    text(this.getCurrentPose().name, 0, -155);
+    
+    // 가이드라인 (수평/수직 참조선)
+    stroke(100, 100, 120, 100);
+    strokeWeight(1);
+    line(-80, 0, 80, 0);  // 수평선
+    line(0, -120, 0, 120); // 수직선
     
     // 포즈 시각화
     this.drawPoseStick(this.getCurrentPose().angles);
+    
+    // 힌트 텍스트
+    fill(200, 200, 220);
+    textSize(11);
+    text("N키: 다음 포즈", 0, 165);
     
     pop();
   }
@@ -225,66 +375,149 @@ class PoseManager {
   drawPoseStick(angles) {
     push();
     
-    // 스틱 피규어 스타일
-    stroke(255, 200, 100);
-    strokeWeight(4);
-    noFill();
-    
-    let torsoY = 0;
+    let waistX = 0;
+    let waistY = 0;
     let headRadius = 20;
-    let torsoHeight = 50;
+    let upperTorsoHeight = 25;
+    let lowerTorsoHeight = 25;
     let armLength = 35;
     let legLength = 40;
     
-    // 머리
-    circle(0, torsoY - torsoHeight - headRadius, headRadius * 2);
+    // 허리에서 상체까지
+    let upperTorsoX = waistX + sin(angles.waist) * upperTorsoHeight;
+    let upperTorsoY = waistY - cos(angles.waist) * upperTorsoHeight;
     
-    // 몸통
-    line(0, torsoY - torsoHeight, 0, torsoY + torsoHeight);
+    // 허리에서 하체까지
+    let lowerTorsoX = waistX - sin(angles.waist) * lowerTorsoHeight;
+    let lowerTorsoY = waistY + cos(angles.waist) * lowerTorsoHeight;
     
-    // 왼쪽 팔
-    let leftShoulderX = 0;
-    let leftShoulderY = torsoY - torsoHeight + 5;
-    let leftElbowX = leftShoulderX + cos(angles.leftShoulder) * armLength;
-    let leftElbowY = leftShoulderY + sin(angles.leftShoulder) * armLength;
-    let leftHandX = leftElbowX + cos(angles.leftShoulder + angles.leftElbow) * armLength;
-    let leftHandY = leftElbowY + sin(angles.leftShoulder + angles.leftElbow) * armLength;
+    // 팔 계산
+    let leftShoulderX = upperTorsoX;
+    let leftShoulderY = upperTorsoY;
+    let leftElbowX = leftShoulderX + cos(angles.leftShoulder + angles.waist) * armLength;
+    let leftElbowY = leftShoulderY + sin(angles.leftShoulder + angles.waist) * armLength;
+    let leftHandX = leftElbowX + cos(angles.leftShoulder + angles.leftElbow + angles.waist) * armLength;
+    let leftHandY = leftElbowY + sin(angles.leftShoulder + angles.leftElbow + angles.waist) * armLength;
     
-    line(leftShoulderX, leftShoulderY, leftElbowX, leftElbowY);
-    line(leftElbowX, leftElbowY, leftHandX, leftHandY);
+    let rightShoulderX = upperTorsoX;
+    let rightShoulderY = upperTorsoY;
+    let rightElbowX = rightShoulderX + cos(angles.rightShoulder + angles.waist) * armLength;
+    let rightElbowY = rightShoulderY + sin(angles.rightShoulder + angles.waist) * armLength;
+    let rightHandX = rightElbowX + cos(angles.rightShoulder + angles.rightElbow + angles.waist) * armLength;
+    let rightHandY = rightElbowY + sin(angles.rightShoulder + angles.rightElbow + angles.waist) * armLength;
     
-    // 오른쪽 팔
-    let rightShoulderX = 0;
-    let rightShoulderY = torsoY - torsoHeight + 5;
-    let rightElbowX = rightShoulderX + cos(angles.rightShoulder) * armLength;
-    let rightElbowY = rightShoulderY + sin(angles.rightShoulder) * armLength;
-    let rightHandX = rightElbowX + cos(angles.rightShoulder + angles.rightElbow) * armLength;
-    let rightHandY = rightElbowY + sin(angles.rightShoulder + angles.rightElbow) * armLength;
-    
-    line(rightShoulderX, rightShoulderY, rightElbowX, rightElbowY);
-    line(rightElbowX, rightElbowY, rightHandX, rightHandY);
-    
-    // 왼쪽 다리
-    let leftHipX = -8;
-    let leftHipY = torsoY + torsoHeight;
+    // 다리 계산
+    let leftHipX = lowerTorsoX - 8;
+    let leftHipY = lowerTorsoY;
     let leftKneeX = leftHipX + cos(angles.leftHip + PI/2) * legLength;
     let leftKneeY = leftHipY + sin(angles.leftHip + PI/2) * legLength;
     let leftFootX = leftKneeX + cos(angles.leftHip + angles.leftKnee + PI/2) * legLength;
     let leftFootY = leftKneeY + sin(angles.leftHip + angles.leftKnee + PI/2) * legLength;
     
-    line(leftHipX, leftHipY, leftKneeX, leftKneeY);
-    line(leftKneeX, leftKneeY, leftFootX, leftFootY);
-    
-    // 오른쪽 다리
-    let rightHipX = 8;
-    let rightHipY = torsoY + torsoHeight;
+    let rightHipX = lowerTorsoX + 8;
+    let rightHipY = lowerTorsoY;
     let rightKneeX = rightHipX + cos(angles.rightHip + PI/2) * legLength;
     let rightKneeY = rightHipY + sin(angles.rightHip + PI/2) * legLength;
     let rightFootX = rightKneeX + cos(angles.rightHip + angles.rightKnee + PI/2) * legLength;
     let rightFootY = rightKneeY + sin(angles.rightHip + angles.rightKnee + PI/2) * legLength;
     
+    // === 그림자 레이어 (뒤쪽 외곽선) ===
+    // 왼쪽 팔 그림자
+    stroke(0, 0, 0, 80);
+    strokeWeight(7);
+    line(leftShoulderX, leftShoulderY, leftElbowX, leftElbowY);
+    strokeWeight(6);
+    line(leftElbowX, leftElbowY, leftHandX, leftHandY);
+    
+    // 오른쪽 팔 그림자
+    strokeWeight(7);
+    line(rightShoulderX, rightShoulderY, rightElbowX, rightElbowY);
+    strokeWeight(6);
+    line(rightElbowX, rightElbowY, rightHandX, rightHandY);
+    
+    // 다리 그림자
+    strokeWeight(7);
+    line(leftHipX, leftHipY, leftKneeX, leftKneeY);
+    strokeWeight(6);
+    line(leftKneeX, leftKneeY, leftFootX, leftFootY);
+    strokeWeight(7);
     line(rightHipX, rightHipY, rightKneeX, rightKneeY);
+    strokeWeight(6);
     line(rightKneeX, rightKneeY, rightFootX, rightFootY);
+    
+    // 몸통 그림자
+    strokeWeight(8);
+    line(waistX, waistY, upperTorsoX, upperTorsoY);
+    line(waistX, waistY, lowerTorsoX, lowerTorsoY);
+    
+    // === 실제 신체 부위 ===
+    // 왼쪽 다리 - 분홍색
+    stroke(255, 120, 150);
+    strokeWeight(4);
+    line(leftHipX, leftHipY, leftKneeX, leftKneeY);
+    strokeWeight(3);
+    line(leftKneeX, leftKneeY, leftFootX, leftFootY);
+    
+    // 오른쪽 다리 - 연한 분홍색
+    stroke(255, 150, 180);
+    strokeWeight(4);
+    line(rightHipX, rightHipY, rightKneeX, rightKneeY);
+    strokeWeight(3);
+    line(rightKneeX, rightKneeY, rightFootX, rightFootY);
+    
+    // 몸통 (상체 + 하체) - 노란색
+    stroke(255, 220, 100);
+    strokeWeight(5);
+    line(waistX, waistY, upperTorsoX, upperTorsoY);
+    line(waistX, waistY, lowerTorsoX, lowerTorsoY);
+    
+    // 왼쪽 팔 - 하늘색 (흰색 외곽선)
+    stroke(255, 255, 255);
+    strokeWeight(6);
+    line(leftShoulderX, leftShoulderY, leftElbowX, leftElbowY);
+    strokeWeight(5);
+    line(leftElbowX, leftElbowY, leftHandX, leftHandY);
+    
+    stroke(100, 180, 255);
+    strokeWeight(4);
+    line(leftShoulderX, leftShoulderY, leftElbowX, leftElbowY);
+    strokeWeight(3);
+    line(leftElbowX, leftElbowY, leftHandX, leftHandY);
+    
+    // 오른쪽 팔 - 연한 하늘색 (흰색 외곽선)
+    stroke(255, 255, 255);
+    strokeWeight(6);
+    line(rightShoulderX, rightShoulderY, rightElbowX, rightElbowY);
+    strokeWeight(5);
+    line(rightElbowX, rightElbowY, rightHandX, rightHandY);
+    
+    stroke(150, 200, 255);
+    strokeWeight(4);
+    line(rightShoulderX, rightShoulderY, rightElbowX, rightElbowY);
+    strokeWeight(3);
+    line(rightElbowX, rightElbowY, rightHandX, rightHandY);
+    
+    // 목과 머리 - 주황색
+    let headX = upperTorsoX + sin(angles.waist + angles.neck) * headRadius;
+    let headY = upperTorsoY - cos(angles.waist + angles.neck) * headRadius;
+    stroke(255, 180, 100);
+    strokeWeight(4);
+    noFill();
+    circle(headX, headY, headRadius * 2);
+    
+    // 주요 관절 표시 (작은 원)
+    fill(255, 255, 100);
+    noStroke();
+    circle(waistX, waistY, 8);           // 허리
+    circle(headX, headY, 8);             // 머리
+    circle(leftElbowX, leftElbowY, 7);   // 왼쪽 팔꿈치
+    circle(leftHandX, leftHandY, 7);     // 왼쪽 손
+    circle(rightElbowX, rightElbowY, 7); // 오른쪽 팔꿈치
+    circle(rightHandX, rightHandY, 7);   // 오른쪽 손
+    circle(leftKneeX, leftKneeY, 7);     // 왼쪽 무릎
+    circle(leftFootX, leftFootY, 7);     // 왼쪽 발
+    circle(rightKneeX, rightKneeY, 7);   // 오른쪽 무릎
+    circle(rightFootX, rightFootY, 7);   // 오른쪽 발
     
     pop();
   }
