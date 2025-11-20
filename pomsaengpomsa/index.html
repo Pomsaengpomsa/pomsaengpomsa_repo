@@ -1,35 +1,94 @@
 <!DOCTYPE html>
-<html lang="">
-
+<html lang="ko">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>폼생폼사 - Perfect Pose Game</title>
+  <title>폼생폼사 - Game Start</title>
   <style>
     body {
-      padding: 0;
       margin: 0;
+      padding: 0;
       background-color: #1b1b1b;
+      color: white;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      height: 100vh;
+      overflow: hidden;
     }
-    canvas {
-      display: block;
+
+    .container {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 3rem;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(4px);
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 3rem;
+      background: linear-gradient(45deg, #ff6b6b, #feca57);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .mode-btn {
+      padding: 1.5rem 2.5rem;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      min-width: 200px;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .mode-pose {
+      background-color: #4ecdc4;
+      color: #1b1b1b;
+    }
+
+    .mode-wall {
+      background-color: #ff6b6b;
+      color: white;
+    }
+
+    .mode-btn:hover {
+      transform: translateY(-5px);
+      filter: brightness(1.1);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    .mode-btn:active {
+      transform: translateY(-2px);
     }
   </style>
-  <script src="../p5.min.js"></script>
-  <!-- <script src="../addons/p5.sound.js"></script> -->
-  <script src="Ragdoll.js"></script>
-  <script src="Pose.js"></script>
-  <script src="UI.js"></script>
-  <script src="sketch.js"></script>
 </head>
-
 <body>
-  <main>
-  </main>
-</body>
 
+  <div class="container">
+    <h1>폼생폼사</h1>
+    <div class="button-group">
+      <a href="game.html?mode=pose" class="mode-btn mode-pose">포즈보기 모드</a>
+      <a href="game.html?mode=wall" class="mode-btn mode-wall">벽모드</a>
+    </div>
+  </div>
+
+</body>
 </html>

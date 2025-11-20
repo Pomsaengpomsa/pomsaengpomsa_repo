@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>폼생폼사 - Perfect Pose Game</title>
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+      background-color: #1b1b1b;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+  <script src="../p5.min.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const mode = urlParams.get('mode') || 'pose';
+
+    function loadScript(src) {
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = false; // Execute in order
+      document.head.appendChild(script);
+    }
+
+    if (mode === 'wall') {
+      loadScript('wall.js');
+    } else {
+      // Default: Pose Mode
+      loadScript('Ragdoll.js');
+      loadScript('Pose.js');
+      loadScript('UI.js');
+      loadScript('sketch.js');
+    }
+  </script>
+</head>
+
+<body>
+  <div style="position: absolute; top: 10px; left: 10px; z-index: 100;">
+    <a href="index.html" style="color: white; text-decoration: none; font-family: sans-serif; background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 5px;">← 메뉴로 돌아가기</a>
+  </div>
+  <main>
+  </main>
+</body>
+
+</html>
