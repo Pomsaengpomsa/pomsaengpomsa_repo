@@ -230,8 +230,6 @@ class PoseManager {
   // 목표 포즈의 관절 위치 계산 (래그돌과 동일한 위치에서)
   calculateTargetJoints(angles) {
     // 래그돌과 동일한 위치 (500, 300)
-    let x = 500;
-    let y = 300;
     
     // 신체 부위 크기 (Ragdoll과 동일)
     let torsoWidth = 30;
@@ -338,31 +336,31 @@ class PoseManager {
   }
   
   // 목표 포즈 그리기
-  drawTarget(x, y) {
+  drawTarget(x, y, w, h) {
     push();
     translate(x, y);
     
     // 배경 패널
-    fill(50, 50, 70, 200);
-    noStroke();
-    rectMode(CENTER);
-    rect(0, 0, 200, 380, 10);
+    // fill(50, 50, 70, 200);
+    // noStroke();
+    // rectMode(CENTER);
+    // rect(0, 0, 200, 380, 10);
     
     // 제목
-    fill(255);
-    textAlign(CENTER);
-    textSize(16);
-    text("목표 포즈", 0, -180);
-    text(this.getCurrentPose().name, 0, -155);
+    // fill(255);
+    // textAlign(CENTER);
+    // textSize(16);
+    // text("목표 포즈", 0, -180);
+    // text(this.getCurrentPose().name, 0, -155);
     
     // 가이드라인 (수평/수직 참조선)
-    stroke(100, 100, 120, 100);
-    strokeWeight(1);
-    line(-80, 0, 80, 0);  // 수평선
-    line(0, -120, 0, 120); // 수직선
+    // stroke(100, 100, 120, 100);
+    // strokeWeight(1);
+    // line(-80, 0, 80, 0);  // 수평선
+    // line(0, -120, 0, 120); // 수직선
     
     // 포즈 시각화
-    this.drawPoseStick(this.getCurrentPose().angles);
+    this.drawPoseStick(x,y,w,h,this.getCurrentPose().angles);
     
     // 힌트 텍스트
     fill(200, 200, 220);
@@ -372,16 +370,16 @@ class PoseManager {
     pop();
   }
   
-  drawPoseStick(angles) {
+  drawPoseStick(x,y,w,h,angles) {
     push();
     
     let waistX = 0;
     let waistY = 0;
-    let headRadius = 20;
-    let upperTorsoHeight = 25;
-    let lowerTorsoHeight = 25;
-    let armLength = 35;
-    let legLength = 40;
+    let headRadius = w/16;
+    let upperTorsoHeight = h/10;
+    let lowerTorsoHeight = h/10;
+    let armLength = w/8;
+    let legLength = w/8;
     
     // 허리에서 상체까지
     let upperTorsoX = waistX + sin(angles.waist) * upperTorsoHeight;
@@ -506,7 +504,7 @@ class PoseManager {
     circle(headX, headY, headRadius * 2);
     
     // 주요 관절 표시 (작은 원)
-    fill(255, 255, 100);
+    fill(255);
     noStroke();
     circle(waistX, waistY, 8);           // 허리
     circle(headX, headY, 8);             // 머리

@@ -1,5 +1,5 @@
 let wallScale = 0.0;
-let wallSpeed = 1.0 / 600.0; // (기존: 0.008)
+let wallSpeed = 0.01;// 1.0 / 600.0; // (기존: 0.008)
 let myCircle;
 
 let grassTexture;
@@ -12,7 +12,7 @@ function preload() {
 
 function setup() {
   createCanvas(800, 600);
-  myCircle = new WallFeature(0.9, color(255, 100, 100));
+  myCircle = new WallFeature(0.5, color(255, 100, 100));
 }
 
 function draw() {
@@ -47,16 +47,20 @@ function draw() {
   // wallScale이 1.0을 넘긴 경우 화면에 꽉찼다는 뜻. 다시 0으로 초기화
   if (wallScale > 1.0) {
     wallScale = 0.0; 
+    poseManager.nextPose();
   }
 }
 
+let poseManager;
+let uiManager;
 class WallFeature {
-  
   // 생성자: 객체가 처음 만들어질 때 호출됩니다.
   constructor(relativeSize, fillColor) {
     // relativeSize: 벽의 크기에 비례한 상대적 크기 (예: 0.3)
     this.relativeSize = relativeSize; 
     this.fillColor = fillColor;
+    poseManager = new PoseManager();
+    uiManager = new UIManager();
   }
   
   // display: 객체가 화면에 그려지는 방식을 정의합니다.
@@ -66,11 +70,8 @@ class WallFeature {
     
     // 이 객체의 지름을 벽의 높이(h)에 비례하여 계산합니다.
     let diameter = h * this.relativeSize;
-    
-    // 그리기
-    fill(this.fillColor);
-    noStroke();
-    ellipse(centerX, centerY, diameter, diameter);
+    poseManager.drawTarget(centerX, centerY, w, h);
+    uiManager.draw(poseManager);
   }
 }
 
