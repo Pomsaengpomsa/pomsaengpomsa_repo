@@ -1,7 +1,24 @@
+// 게임 상태 상수
+const STATE_START = 0;
+const STATE_POSE_MATCH = 1;
+const STATE_WALL_APPROACH = 2;
+
+let currentState = STATE_START;
+
 // 게임 오브젝트
 let ragdoll;
 let poseManager;
 let uiManager;
+let wallGame;
+
+// 텍스처
+let grassTexture;
+let brickTexture;
+
+function preload() {
+  grassTexture = loadImage('assets/grass.jpeg');
+  brickTexture = loadImage('assets/brick.jpg');
+}
 
 function setup() {
   createCanvas(800, 600);
@@ -14,9 +31,96 @@ function setup() {
   
   // UI 매니저
   uiManager = new UIManager();
+  
+  // 벽 게임 모드
+  wallGame = new WallGame(brickTexture);
 }
 
 function draw() {
+  if (currentState === STATE_START) {
+    drawStartScreen();
+  } else if (currentState === STATE_POSE_MATCH) {
+    runPoseMatchGame();
+  } else if (currentState === STATE_WALL_APPROACH) {
+    wallGame.draw();
+    drawBackButton();
+  }
+}
+
+function drawStartScreen() {
+  background(20, 20, 30);
+  
+  // 장식용 배경 패턴 (간단한 격자)
+  stroke(50);
+  strokeWeight(1);
+  for (let x = 0; x < width; x += 40) {
+    line(x, 0, x, height);
+  }
+  for (let y = 0; y < height; y += 40) {
+    line(0, y, width, y);
+  }
+  
+  // 타이틀
+  textAlign(CENTER, CENTER);
+  
+  // 그림자 효과
+  fill(0, 0, 0, 100);
+  textSize(60);
+  text("폼생폼사", width/2 + 4, height/4 + 4);
+  
+  // 메인 텍스트
+  fill(255, 220, 100);
+  text("폼생폼사", width/2, height/4);
+  
+  fill(200);
+  textSize(24);
+  text("- Perfect Pose -", width/2, height/4 + 60);
+  
+  // 버튼 그리기 함수
+  drawMenuButton("포즈 맞추기", width/2, height/2, 100, 200, 255);
+  drawMenuButton("벽 다가오기", width/2, height/2 + 80, 255, 150, 150);
+}
+
+function drawMenuButton(label, x, y, r, g, b) {
+  let btnW = 240;
+  let btnH = 60;
+  let isHover = mouseX > x - btnW/2 && mouseX < x + btnW/2 && 
+                mouseY > y - btnH/2 && mouseY < y + btnH/2;
+  
+  push();
+  translate(x, y);
+  
+  if (isHover) {
+    // 호버 시 크기 확대 (translate를 사용해 중심 기준 확대)
+    scale(1.1);
+    fill(r + 30, g + 30, b + 30);
+    stroke(255);
+    strokeWeight(2);
+  } else {
+    fill(r, g, b);
+    noStroke();
+  }
+  
+  // 그림자 (호버되지 않았을 때만 표시하거나, 항상 표시하되 위치 조정)
+  // 여기서는 단순화를 위해 그림자는 생략하거나 scale 이전에 그릴 수 있음
+  // 하지만 이미 translate된 상태이므로, 그림자는 별도로 처리하지 않고 스타일만 변경
+  
+  rectMode(CENTER);
+  rect(0, 0, btnW, btnH, 15);
+  
+  fill(30);
+  noStroke();
+  textSize(20);
+  textStyle(BOLD);
+  // 텍스트 정렬
+  textAlign(CENTER, CENTER);
+  text(label, 0, 0);
+  textStyle(NORMAL);
+  
+  pop();
+}
+
+function runPoseMatchGame() {
   background(30);
   
   // 목표 포즈 표시 (왼쪽)
@@ -31,31 +135,96 @@ function draw() {
   
   // UI 그리기
   uiManager.draw(poseManager);
+  
+  drawBackButton();
+}
+
+function drawBackButton() {
+  push();
+  let btnX = 10;
+  let btnY = 10;
+  let btnW = 80;
+  let btnH = 30;
+  
+  // 호버 효과
+  if (mouseX > btnX && mouseX < btnX + btnW && 
+      mouseY > btnY && mouseY < btnY + btnH) {
+    fill(80);
+    stroke(255);
+  } else {
+    fill(50);
+    stroke(200);
+  }
+  
+  strokeWeight(1);
+  rectMode(CORNER);
+  rect(btnX, btnY, btnW, btnH, 5);
+  
+  fill(255);
+  noStroke();
+  textSize(14);
+  textAlign(CENTER, CENTER);
+  text("뒤로가기", btnX + btnW/2, btnY + btnH/2);
+  pop();
 }
 
 // 마우스 이벤트
 function mousePressed() {
-  ragdoll.startDrag(mouseX, mouseY);
+  if (currentState === STATE_START) {
+    let btnW = 240;
+    let btnH = 60;
+    let centerX = width/2;
+    let btn1Y = height/2;
+    let btn2Y = height/2 + 80;
+    
+    // 버튼 클릭 확인
+    if (mouseX > centerX - btnW/2 && mouseX < centerX + btnW/2) {
+      if (mouseY > btn1Y - btnH/2 && mouseY < btn1Y + btnH/2) {
+        currentState = STATE_POSE_MATCH;
+      } else if (mouseY > btn2Y - btnH/2 && mouseY < btn2Y + btnH/2) {
+        currentState = STATE_WALL_APPROACH;
+      }
+    }
+  } else {
+    // 뒤로가기 버튼 (좌상단)
+    if (mouseX > 10 && mouseX < 90 && mouseY > 10 && mouseY < 40) {
+      currentState = STATE_START;
+      // Reset game states if needed
+      if (ragdoll) ragdoll.reset();
+      if (wallGame) wallGame.wallScale = 0;
+      return;
+    }
+    
+    if (currentState === STATE_POSE_MATCH) {
+      ragdoll.startDrag(mouseX, mouseY);
+    }
+  }
 }
 
 function mouseDragged() {
-  ragdoll.drag(mouseX, mouseY);
+  if (currentState === STATE_POSE_MATCH) {
+    ragdoll.drag(mouseX, mouseY);
+  }
 }
 
 function mouseReleased() {
-  ragdoll.stopDrag();
+  if (currentState === STATE_POSE_MATCH) {
+    ragdoll.stopDrag();
+  }
 }
 
 // 키보드 이벤트
 function keyPressed() {
-  // 스페이스바: 래그돌 리셋
-  if (key === ' ') {
-    ragdoll.reset();
-  }
-  
-  // N키: 다음 포즈
-  if (key === 'n' || key === 'N') {
-    poseManager.nextPose();
-    ragdoll.reset();
+  if (currentState === STATE_POSE_MATCH) {
+    // 스페이스바: 래그돌 리셋
+    if (key === ' ') {
+      ragdoll.reset();
+    }
+    
+    // N키: 다음 포즈
+    if (key === 'n' || key === 'N') {
+      poseManager.nextPose();
+      ragdoll.reset();
+    }
   }
 }

@@ -23,10 +23,11 @@ class UIManager {
     noStroke();
     textSize(14);
     textAlign(LEFT);
-    text("빨간 점을 드래그하여 포즈를 맞춰보세요!", 10, 25);
+    // 뒤로가기 버튼 아래로 이동
+    text("빨간 점을 드래그하여 포즈를 맞춰보세요!", 10, 65);
     textSize(12);
     fill(200, 200, 200);
-    text("스페이스: 리셋 | N: 다음 포즈", 10, 45);
+    text("스페이스: 리셋 | N: 다음 포즈", 10, 85);
     pop();
   }
   
@@ -34,36 +35,38 @@ class UIManager {
     push();
     fill(255);
     noStroke();
-    textAlign(RIGHT);
-    textSize(28);
-    text("일치도: " + nf(this.matchScore, 2, 1) + "%", width - 20, 50);
+    textAlign(RIGHT, TOP);
+    textSize(24);
+    // 상단 우측에 점수 표시
+    text("일치도: " + nf(this.matchScore, 2, 1) + "%", width - 20, 20);
     pop();
   }
   
   drawProgressBar() {
     push();
     
-    let barWidth = 300;
-    let barHeight = 25;
+    let barWidth = 200;
+    let barHeight = 15;
+    // 점수 텍스트 아래에 위치
     let barX = width - barWidth - 20;
-    let barY = 70;
+    let barY = 55;
     
     // 배경
     fill(50);
     noStroke();
-    rect(barX, barY, barWidth, barHeight, 12);
+    rect(barX, barY, barWidth, barHeight, 8);
     
     // 진행도
     let progress = map(this.matchScore, 0, 100, 0, barWidth);
     let barColor = this.getProgressColor(this.matchScore);
     fill(barColor);
-    rect(barX, barY, progress, barHeight, 12);
+    rect(barX, barY, progress, barHeight, 8);
     
     // 테두리
     noFill();
     stroke(100);
-    strokeWeight(2);
-    rect(barX, barY, barWidth, barHeight, 12);
+    strokeWeight(1);
+    rect(barX, barY, barWidth, barHeight, 8);
     
     pop();
   }
