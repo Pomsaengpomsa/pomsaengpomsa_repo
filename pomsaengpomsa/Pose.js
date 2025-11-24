@@ -193,20 +193,25 @@ class PoseManager {
   
   // 현재 래그돌 포즈와 목표 포즈 비교 (관절 점 위치 기반)
   calculateMatch(ragdollJoints, ragdollAngles) {
-    // 목표 포즈의 관절 위치 계산
-    let targetJoints = this.calculateTargetJoints(this.getCurrentPose().angles);
+    // 목표 포즈의 관절 위치 계산 (래그돌의 허리 위치 기준)
+    let targetJoints = this.calculateTargetJoints(
+      this.getCurrentPose().angles,
+      ragdollJoints.waist.x,
+      ragdollJoints.waist.y
+    );
     
     // 비교할 주요 관절 점들
     const keyJoints = [
-      'head', 'waist',
+      'head',
       'leftElbow', 'leftHand',
       'rightElbow', 'rightHand',
       'leftKnee', 'leftFoot',
       'rightKnee', 'rightFoot'
     ];
+    // waist는 기준점이므로 제외
     
     let totalDistance = 0;
-    let maxAllowedDistance = 20; // 픽셀 단위 허용 거리
+    let maxAllowedDistance = 30; // 픽셀 단위 허용 거리 (더 관대하게)
     
     // 각 관절 점의 거리 계산
     for (let jointName of keyJoints) {
@@ -227,11 +232,11 @@ class PoseManager {
     return score;
   }
   
-  // 목표 포즈의 관절 위치 계산 (래그돌과 동일한 위치에서)
-  calculateTargetJoints(angles) {
-    // 래그돌과 동일한 위치 (500, 300)
-    let x = 500;
-    let y = 300;
+  // 목표 포즈의 관절 위치 계산
+  calculateTargetJoints(angles, cx = 400, cy = 300) {
+    // 래그돌의 허리 위치를 기준으로 계산
+    let x = cx;
+    let y = cy;
     
     // 신체 부위 크기 (Ragdoll과 동일)
     let torsoWidth = 30;

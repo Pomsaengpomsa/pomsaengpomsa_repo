@@ -23,8 +23,8 @@ function preload() {
 function setup() {
   createCanvas(800, 600);
   
-  // 래그돌 생성 (고정된 위치)
-  ragdoll = new Ragdoll(500, 300);
+  // 래그돌 생성 (화면 중앙)
+  ragdoll = new Ragdoll(400, 300);
   
   // 포즈 매니저
   poseManager = new PoseManager();
@@ -42,6 +42,7 @@ function draw() {
   } else if (currentState === STATE_POSE_MATCH) {
     runPoseMatchGame();
   } else if (currentState === STATE_WALL_APPROACH) {
+    wallGame.update();
     wallGame.draw();
     drawBackButton();
   }
@@ -191,24 +192,24 @@ function mousePressed() {
       currentState = STATE_START;
       // Reset game states if needed
       if (ragdoll) ragdoll.reset();
-      if (wallGame) wallGame.wallScale = 0;
+      if (wallGame) wallGame.createNewWall();
       return;
     }
     
-    if (currentState === STATE_POSE_MATCH) {
+    if (currentState === STATE_POSE_MATCH || currentState === STATE_WALL_APPROACH) {
       ragdoll.startDrag(mouseX, mouseY);
     }
   }
 }
 
 function mouseDragged() {
-  if (currentState === STATE_POSE_MATCH) {
+  if (currentState === STATE_POSE_MATCH || currentState === STATE_WALL_APPROACH) {
     ragdoll.drag(mouseX, mouseY);
   }
 }
 
 function mouseReleased() {
-  if (currentState === STATE_POSE_MATCH) {
+  if (currentState === STATE_POSE_MATCH || currentState === STATE_WALL_APPROACH) {
     ragdoll.stopDrag();
   }
 }
