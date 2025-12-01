@@ -76,16 +76,16 @@ class WallGame {
   }
   
   drawPoseHole(g, angles) {
-    // 포즈 모양을 두껍게 그려서 구멍 만들기
+    // 포즈 모양을 두껍게 그려서 구멍 만들기 (1.5배 확대)
     let waistX = 0;
     let waistY = 0;
-    let headRadius = 25;
-    let upperTorsoHeight = 30;
-    let lowerTorsoHeight = 30;
-    let upperArmLength = 45;
-    let lowerArmLength = 40;
-    let upperLegLength = 50;
-    let lowerLegLength = 45;
+    let headRadius = 38;
+    let upperTorsoHeight = 45;
+    let lowerTorsoHeight = 45;
+    let upperArmLength = 68;
+    let lowerArmLength = 60;
+    let upperLegLength = 75;
+    let lowerLegLength = 68;
     
     // 허리에서 상체까지
     let upperTorsoX = waistX + sin(angles.waist) * upperTorsoHeight;
@@ -129,8 +129,8 @@ class WallGame {
     let headX = upperTorsoX + sin(angles.waist + angles.neck) * headRadius;
     let headY = upperTorsoY - cos(angles.waist + angles.neck) * headRadius;
     
-    // 구멍을 넉넉하게 뚫기 위해 두껍게 그리기
-    let holeWidth = 25; // 구멍 두께
+    // 구멍을 넉넉하게 뚫기 위해 두껍게 그리기 (1.5배 확대)
+    let holeWidth = 38; // 구멍 두께
     
     g.strokeWeight(holeWidth);
     g.stroke(0);
@@ -258,15 +258,15 @@ class WallGame {
     fill(50, 50, 70, 200);
     noStroke();
     rectMode(CORNER);
-    rect(width - 160, 50, 150, 200, 10);
+    rect(width - 240, 50, 220, 280, 10);
     
     fill(255);
     textAlign(CENTER);
-    textSize(14);
-    text("목표 포즈", width - 85, 70);
+    textSize(16);
+    text("목표 포즈", width - 130, 75);
     
     // 작은 포즈 그리기
-    translate(width - 85, 150);
+    translate(width - 130, 190);
     scale(0.6);
     this.poseManager.drawPoseStick(this.poseManager.getCurrentPose().angles);
     

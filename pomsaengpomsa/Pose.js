@@ -238,15 +238,15 @@ class PoseManager {
     let x = cx;
     let y = cy;
     
-    // 신체 부위 크기 (Ragdoll과 동일)
-    let torsoWidth = 30;
-    let upperTorsoHeight = 30;
-    let lowerTorsoHeight = 30;
-    let headRadius = 25;
-    let upperArmLength = 45;
-    let lowerArmLength = 40;
-    let upperLegLength = 50;
-    let lowerLegLength = 45;
+    // 신체 부위 크기 (Ragdoll과 동일 - 1.5배 확대)
+    let torsoWidth = 45;
+    let upperTorsoHeight = 45;
+    let lowerTorsoHeight = 45;
+    let headRadius = 38;
+    let upperArmLength = 68;
+    let lowerArmLength = 60;
+    let upperLegLength = 75;
+    let lowerLegLength = 68;
     
     let joints = {};
     
@@ -382,11 +382,11 @@ class PoseManager {
     
     let waistX = 0;
     let waistY = 0;
-    let headRadius = 20;
-    let upperTorsoHeight = 25;
-    let lowerTorsoHeight = 25;
-    let armLength = 35;
-    let legLength = 40;
+    let headRadius = 30;
+    let upperTorsoHeight = 38;
+    let lowerTorsoHeight = 38;
+    let armLength = 53;
+    let legLength = 60;
     
     // 허리에서 상체까지
     let upperTorsoX = waistX + sin(angles.waist) * upperTorsoHeight;

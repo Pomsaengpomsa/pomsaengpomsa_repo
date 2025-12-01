@@ -4,16 +4,16 @@ class Ragdoll {
     this.x = x;
     this.y = y;
     
-    // 신체 부위 크기
-    this.headRadius = 25;
-    this.torsoWidth = 30;
-    this.upperTorsoHeight = 30;  // 상체 (어깨~허리)
-    this.lowerTorsoHeight = 30;  // 하체 (허리~골반)
-    this.upperArmLength = 45;
-    this.lowerArmLength = 40;
-    this.upperLegLength = 50;
-    this.lowerLegLength = 45;
-    this.limbWidth = 12;
+    // 신체 부위 크기 (1.5배 확대)
+    this.headRadius = 38;
+    this.torsoWidth = 45;
+    this.upperTorsoHeight = 45;  // 상체 (어깨~허리)
+    this.lowerTorsoHeight = 45;  // 하체 (허리~골반)
+    this.upperArmLength = 68;
+    this.lowerArmLength = 60;
+    this.upperLegLength = 75;
+    this.lowerLegLength = 68;
+    this.limbWidth = 18;
     
     // 관절 각도 (라디안) - T자 포즈 (양옆 수평)
     this.angles = {
