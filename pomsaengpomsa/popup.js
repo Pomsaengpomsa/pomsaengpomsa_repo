@@ -1,30 +1,3 @@
-/*
-- c.TitleScreen : sketch에서 호출하는 Title화면 클래스
-  - initButtons
-  - draw
-  - openPopup
-  - closePopup
-  - drawPopup
-  - drawCloseButton
-  - drawTitle
-  - showMessage
-  - drawMessage
-  - handleMousePressed
-  - handleMouseMoved
-
-- c.button
-  - constructor
-  - isHovered
-  - update
-  - show
-
--c.CircleButton
-  - constructor
-  - isHovered
-  - update
-  - show
-*/
-
 class Popup {
     constructor(font = null) {
         this.font = font;
