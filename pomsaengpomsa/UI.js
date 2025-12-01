@@ -98,7 +98,7 @@ class UIManager {
       fill(0, 0, 0, 150);
       noStroke();
       rectMode(CENTER);
-      rect(width/2, height/2 - 80, 400, 120, 15);
+      rect(width/2, height/2 - 80, 400, 180, 15);
       
       // 성공 텍스트
       fill(100, 255, 100);

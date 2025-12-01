@@ -5,6 +5,13 @@ const STATE_WALL_APPROACH = 2;
 
 let currentState = STATE_START;
 
+// 캔버스 크기 제한
+const MIN_WIDTH = 1200;
+const MIN_HEIGHT = 750;
+const MAX_WIDTH = 1920;
+const MAX_HEIGHT = 1200;
+const ASPECT_RATIO = 16 / 10;
+
 // 게임 오브젝트
 let ragdoll;
 let poseManager;
@@ -23,11 +30,31 @@ function preload() {
   brickTexture = loadImage('assets/brick.jpg');
 }
 
+// 캠버스 크기 계산 함수
+function calculateCanvasSize() {
+  let canvasWidth = windowWidth;
+  let canvasHeight = windowHeight;
+  
+  // 비율 유지
+  if (canvasWidth / canvasHeight > ASPECT_RATIO) {
+    canvasWidth = canvasHeight * ASPECT_RATIO;
+  } else {
+    canvasHeight = canvasWidth / ASPECT_RATIO;
+  }
+  
+  // 최소/최대 크기 제한
+  canvasWidth = constrain(canvasWidth, MIN_WIDTH, MAX_WIDTH);
+  canvasHeight = constrain(canvasHeight, MIN_HEIGHT, MAX_HEIGHT);
+  
+  return { width: canvasWidth, height: canvasHeight };
+}
+
 function setup() {
-  createCanvas(800, 600);
+  let canvasSize = calculateCanvasSize();
+  createCanvas(canvasSize.width, canvasSize.height);
   
   // 래그돌 생성 (화면 중앙)
-  ragdoll = new Ragdoll(400, 300);
+  ragdoll = new Ragdoll(width / 2, height / 2);
   
   // 포즈 매니저
   poseManager = new PoseManager();
@@ -170,7 +197,7 @@ function runPoseMatchGame() {
   background(30);
   
   // 목표 포즈 표시 (왼쪽)
-  poseManager.drawTarget(150, 300);
+  poseManager.drawTarget(width * 0.2, height / 2);
   
   // 래그돌 그리기
   ragdoll.draw();
@@ -285,6 +312,16 @@ function mouseReleased() {
   
   if (currentState === STATE_POSE_MATCH || currentState === STATE_WALL_APPROACH) {
     ragdoll.stopDrag();
+  }
+}
+
+// 창 크기 변경 이벤트
+function windowResized() {
+  let canvasSize = calculateCanvasSize();
+  resizeCanvas(canvasSize.width, canvasSize.height);
+  // 래그돌 위치를 새로운 화면 중앙으로 업데이트
+  if (ragdoll) {
+    ragdoll.setPosition(width / 2, height / 2);
   }
 }
 
