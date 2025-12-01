@@ -347,32 +347,32 @@ class PoseManager {
     push();
     translate(x, y);
     
-    // 배경 패널
+    // 배경 패널 (1.5배 확대)
     fill(50, 50, 70, 200);
     noStroke();
     rectMode(CENTER);
-    rect(0, 0, 200, 380, 10);
+    rect(0, 0, 280, 520, 10);
     
     // 제목
     fill(255);
     textAlign(CENTER);
-    textSize(16);
-    text("목표 포즈", 0, -180);
-    text(this.getCurrentPose().name, 0, -155);
+    textSize(18);
+    text("목표 포즈", 0, -245);
+    text(this.getCurrentPose().name, 0, -215);
     
     // 가이드라인 (수평/수직 참조선)
     stroke(100, 100, 120, 100);
     strokeWeight(1);
-    line(-80, 0, 80, 0);  // 수평선
-    line(0, -120, 0, 120); // 수직선
+    line(-120, 0, 120, 0);  // 수평선
+    line(0, -180, 0, 180); // 수직선
     
     // 포즈 시각화
     this.drawPoseStick(this.getCurrentPose().angles);
     
     // 힌트 텍스트
     fill(200, 200, 220);
-    textSize(11);
-    text("N키: 다음 포즈", 0, 165);
+    textSize(12);
+    text("N키: 다음 포즈", 0, 240);
     
     pop();
   }
@@ -383,6 +383,7 @@ class PoseManager {
     let waistX = 0;
     let waistY = 0;
     let headRadius = 30;
+    let torsoWidth = 45;
     let upperTorsoHeight = 38;
     let lowerTorsoHeight = 38;
     let armLength = 53;
