@@ -387,25 +387,26 @@ class PoseManager {
     let lowerTorsoHeight = 25;
     let armLength = 35;
     let legLength = 40;
-    
+    let torsoWidth = 20; // 몸통 너비 추가
+
     // 허리에서 상체까지
     let upperTorsoX = waistX + sin(angles.waist) * upperTorsoHeight;
     let upperTorsoY = waistY - cos(angles.waist) * upperTorsoHeight;
-    
+
     // 허리에서 하체까지
     let lowerTorsoX = waistX - sin(angles.waist) * lowerTorsoHeight;
     let lowerTorsoY = waistY + cos(angles.waist) * lowerTorsoHeight;
-    
+
     // 팔 계산
-    let leftShoulderX = upperTorsoX;
-    let leftShoulderY = upperTorsoY;
+    let leftShoulderX = upperTorsoX - torsoWidth / 2 * cos(angles.waist);
+    let leftShoulderY = upperTorsoY - torsoWidth / 2 * sin(angles.waist);
     let leftElbowX = leftShoulderX + cos(angles.leftShoulder + angles.waist) * armLength;
     let leftElbowY = leftShoulderY + sin(angles.leftShoulder + angles.waist) * armLength;
     let leftHandX = leftElbowX + cos(angles.leftShoulder + angles.leftElbow + angles.waist) * armLength;
     let leftHandY = leftElbowY + sin(angles.leftShoulder + angles.leftElbow + angles.waist) * armLength;
-    
-    let rightShoulderX = upperTorsoX;
-    let rightShoulderY = upperTorsoY;
+
+    let rightShoulderX = upperTorsoX + torsoWidth / 2 * cos(angles.waist);
+    let rightShoulderY = upperTorsoY + torsoWidth / 2 * sin(angles.waist);
     let rightElbowX = rightShoulderX + cos(angles.rightShoulder + angles.waist) * armLength;
     let rightElbowY = rightShoulderY + sin(angles.rightShoulder + angles.waist) * armLength;
     let rightHandX = rightElbowX + cos(angles.rightShoulder + angles.rightElbow + angles.waist) * armLength;
