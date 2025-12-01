@@ -24,6 +24,7 @@ let brickTexture;
 
 //화면 객체
 let popup;
+let nicknameInput;
 
 function preload() {
   grassTexture = loadImage('assets/grass.jpeg');
@@ -53,6 +54,14 @@ function setup() {
   let canvasSize = calculateCanvasSize();
   createCanvas(canvasSize.width, canvasSize.height);
   
+  // 닉네임 입력 필드
+  nicknameInput = createInput('');
+  nicknameInput.attribute('placeholder', '닉네임을 입력하세요');
+  nicknameInput.style('text-align', 'center');
+  nicknameInput.size(240, 40);
+  nicknameInput.style('font-size', '18px');
+  nicknameInput.hide();
+
   // 래그돌 생성 (화면 중앙)
   ragdoll = new Ragdoll(width / 2, height / 2);
   
@@ -110,10 +119,26 @@ function drawStartScreen() {
   textSize(24);
   text("- Perfect Pose -", width/2, height/4 + 60);
   
+  // 닉네임 입력 필드
+  if (popup.isActive()) {
+    nicknameInput.hide();
+  } else {
+    nicknameInput.show();
+  }
+  nicknameInput.position(width/2 - 120, height/2 + 120);
+
   // 버튼 그리기 함수
-  drawMenuButton("포즈 맞추기", width/2, height/2, 100, 200, 255);
-  drawMenuButton("벽 다가오기", width/2, height/2 + 80, 255, 150, 150);
-  drawMenuButton("게임 설명", width/2, height/2 + 160, 100, 255, 200);
+  let nickname = nicknameInput.value();
+  let isNicknameEmpty = nickname.trim() === '';
+
+  drawMenuButton("게임 설명", width/2, height/2 + 40, 100, 200, 255);
+
+  if (isNicknameEmpty) {
+    drawMenuButton("게임시작", width/2, height/2 + 120, 150, 150, 150); // Disabled
+  } else {
+    drawMenuButton("게임시작", width/2, height/2 + 120, 100, 255, 200); // Enabled
+  }
+  
   infoButton("i", 50, 50, 25, 100,100,100);
 }
 
@@ -253,18 +278,16 @@ function mousePressed() {
     let btnW = 240;
     let btnH = 60;
     let centerX = width/2;
-    let btn1Y = height/2;
-    let btn2Y = height/2 + 80;
-    let btn3Y = height/2 + 160;
+    let btn1Y = height/2 + 40; // "게임 설명" 버튼
+    let btn2Y = height/2 + 120; // "게임시작" 버튼
     let infoBtnDist = dist(mouseX, mouseY, 50, 50) < 25;
     
+    let nickname = nicknameInput.value();
+    let isNicknameEmpty = nickname.trim() === '';
+
     // 버튼 클릭 확인
     if (mouseX > centerX - btnW/2 && mouseX < centerX + btnW/2) {
       if (mouseY > btn1Y - btnH/2 && mouseY < btn1Y + btnH/2) {
-        currentState = STATE_POSE_MATCH;
-      } else if (mouseY > btn2Y - btnH/2 && mouseY < btn2Y + btnH/2) {
-        currentState = STATE_WALL_APPROACH;
-      } else if (mouseY > btn3Y - btnH/2 && mouseY < btn3Y + btnH/2) {
         popup.open("게임 설명",
           "-마우스 조작-\n" +
           "캐릭터의 관절(작은 원)을 잡고 마우스로 드래그하여 포즈를 만듭니다.\n" +
@@ -275,6 +298,18 @@ function mousePressed() {
           "2. 벽 다가오기 모드\n" +
           "다가오는 벽의 구멍에 캐릭터를 맞춰 통과하세요\n"
         );
+      } else if (mouseY > btn2Y - btnH/2 && mouseY < btn2Y + btnH/2 && !isNicknameEmpty) {
+        let scores = LocalStorageManager.getItem('poseGameScores') || [];
+        let isDuplicate = scores.some(score => score.nickname === nickname);
+
+        if (isDuplicate) {
+          popup.open("오류", "이미 사용중인 닉네임입니다.");
+        } else {
+          scores.push({ nickname: nickname, score: 0 });
+          LocalStorageManager.setItem('poseGameScores', scores);
+          currentState = STATE_WALL_APPROACH;
+          nicknameInput.hide();
+        }
       }
     }
     if (infoBtnDist) {
@@ -287,6 +322,7 @@ function mousePressed() {
     // 뒤로가기 버튼 (좌상단)
     if (mouseX > 10 && mouseX < 90 && mouseY > 10 && mouseY < 40) {
       currentState = STATE_START;
+      nicknameInput.show();
       // Reset game states if needed
       if (ragdoll) ragdoll.reset();
       if (wallGame) wallGame.createNewWall();
