@@ -15,6 +15,9 @@ let wallGame;
 let grassTexture;
 let brickTexture;
 
+//화면 객체
+let popup;
+
 function preload() {
   grassTexture = loadImage('assets/grass.jpeg');
   brickTexture = loadImage('assets/brick.jpg');
@@ -34,11 +37,14 @@ function setup() {
   
   // 벽 게임 모드
   wallGame = new WallGame(brickTexture);
+
+  popup = new Popup();
 }
 
 function draw() {
   if (currentState === STATE_START) {
     drawStartScreen();
+    popup.display();
   } else if (currentState === STATE_POSE_MATCH) {
     runPoseMatchGame();
   } else if (currentState === STATE_WALL_APPROACH) {
@@ -80,6 +86,8 @@ function drawStartScreen() {
   // 버튼 그리기 함수
   drawMenuButton("포즈 맞추기", width/2, height/2, 100, 200, 255);
   drawMenuButton("벽 다가오기", width/2, height/2 + 80, 255, 150, 150);
+  drawMenuButton("게임 설명", width/2, height/2 + 160, 100, 255, 200);
+  infoButton("i", 50, 50, 25, 100,100,100);
 }
 
 function drawMenuButton(label, x, y, r, g, b) {
@@ -91,15 +99,18 @@ function drawMenuButton(label, x, y, r, g, b) {
   push();
   translate(x, y);
   
-  if (isHover) {
+  //팝업 활성화인 경우 호버 효과 끄기
+  if (isHover && !popup.isActive()) {
     // 호버 시 크기 확대 (translate를 사용해 중심 기준 확대)
     scale(1.1);
     fill(r + 30, g + 30, b + 30);
     stroke(255);
     strokeWeight(2);
+    cursor(HAND);
   } else {
     fill(r, g, b);
     noStroke();
+    if (!popup.isActive()) cursor(ARROW);
   }
   
   // 그림자 (호버되지 않았을 때만 표시하거나, 항상 표시하되 위치 조정)
@@ -120,6 +131,40 @@ function drawMenuButton(label, x, y, r, g, b) {
   
   pop();
 }
+
+function infoButton(label, x, y, cr, r,g,b) {
+  let isHover = dist(mouseX, mouseY, x, y) < cr;
+  
+  push();
+  translate(x, y);
+
+  if (isHover && !popup.isActive()) {
+    scale(1.1);
+    fill(r + 30, g + 30, b + 30);
+    stroke(255,200);
+    strokeWeight(2);
+    cursor(HAND);
+  } else {
+    fill(r,g,b);
+    noStroke();
+    if (!popup.isActive()) cursor(ARROW);
+  }
+
+  rectMode(CORNER);
+  circle(0, 0, cr * 2);
+
+  fill(30);
+  noStroke();
+  textSize(24);
+  textStyle(BOLD);
+
+  textAlign(CENTER, CENTER);
+  text(label, 0, 0);
+  textStyle(NORMAL);
+
+  pop();
+}
+
 
 function runPoseMatchGame() {
   background(30);
@@ -148,13 +193,15 @@ function drawBackButton() {
   let btnH = 30;
   
   // 호버 효과
-  if (mouseX > btnX && mouseX < btnX + btnW && 
-      mouseY > btnY && mouseY < btnY + btnH) {
-    fill(80);
-    stroke(255);
+  if ((mouseX > btnX && mouseX < btnX + btnW && 
+      mouseY > btnY && mouseY < btnY + btnH) && !popup.isActive()) {
+      fill(80);
+      stroke(255);
+      cursor(HAND);
   } else {
-    fill(50);
-    stroke(200);
+      fill(50);
+      stroke(200);
+      if (!popup.isActive()) cursor(ARROW);
   }
   
   strokeWeight(1);
@@ -171,12 +218,18 @@ function drawBackButton() {
 
 // 마우스 이벤트
 function mousePressed() {
+  if (popup.handleClick()) { // 팝업이 켜져있으면 뒷배경 선택 차단
+    return;
+  }
+
   if (currentState === STATE_START) {
     let btnW = 240;
     let btnH = 60;
     let centerX = width/2;
     let btn1Y = height/2;
     let btn2Y = height/2 + 80;
+    let btn3Y = height/2 + 160;
+    let infoBtnDist = dist(mouseX, mouseY, 50, 50) < 25;
     
     // 버튼 클릭 확인
     if (mouseX > centerX - btnW/2 && mouseX < centerX + btnW/2) {
@@ -184,7 +237,24 @@ function mousePressed() {
         currentState = STATE_POSE_MATCH;
       } else if (mouseY > btn2Y - btnH/2 && mouseY < btn2Y + btnH/2) {
         currentState = STATE_WALL_APPROACH;
+      } else if (mouseY > btn3Y - btnH/2 && mouseY < btn3Y + btnH/2) {
+        popup.open("게임 설명",
+          "-마우스 조작-\n" +
+          "캐릭터의 관절(작은 원)을 잡고 마우스로 드래그하여 포즈를 만듭니다.\n" +
+          "-카메라 인식-\n" +
+          "카메라로 몸의 움직임을 인식하여 캐릭터를 움직입니다.\n\n" +
+          "1. 포즈 맞추기 모드\n" +
+          "목표 포즈와 캐릭터 포즈의 일치율을 높여 점수를 얻으세요\n" +
+          "2. 벽 다가오기 모드\n" +
+          "다가오는 벽의 구멍에 캐릭터를 맞춰 통과하세요\n"
+        );
       }
+    }
+    if (infoBtnDist) {
+      popup.open("INFORMATION",
+        "Developer\n" +
+        "숭실대학교 디지털미디어학과 25학번 김동민, 이가영, 임소연\n"
+      );
     }
   } else {
     // 뒤로가기 버튼 (좌상단)
@@ -203,12 +273,16 @@ function mousePressed() {
 }
 
 function mouseDragged() {
+  if (popup.isActive()) return;
+
   if (currentState === STATE_POSE_MATCH || currentState === STATE_WALL_APPROACH) {
     ragdoll.drag(mouseX, mouseY);
   }
 }
 
 function mouseReleased() {
+  if (popup.isActive()) return;
+  
   if (currentState === STATE_POSE_MATCH || currentState === STATE_WALL_APPROACH) {
     ragdoll.stopDrag();
   }
@@ -216,6 +290,8 @@ function mouseReleased() {
 
 // 키보드 이벤트
 function keyPressed() {
+  if (popup.isActive()) return;
+
   if (currentState === STATE_POSE_MATCH) {
     // 스페이스바: 래그돌 리셋
     if (key === ' ') {
