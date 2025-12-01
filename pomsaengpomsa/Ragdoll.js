@@ -321,4 +321,11 @@ class Ragdoll {
     };
     this.updateJoints();
   }
+  
+  setPosition(x, y) {
+    // 래그돌의 중심 위치 업데이트
+    this.x = x;
+    this.y = y;
+    this.updateJoints();
+  }
 }

@@ -24,10 +24,10 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(800, 600);
+  createCanvas(windowWidth, windowHeight);
   
   // 래그돌 생성 (화면 중앙)
-  ragdoll = new Ragdoll(400, 300);
+  ragdoll = new Ragdoll(width / 2, height / 2);
   
   // 포즈 매니저
   poseManager = new PoseManager();
@@ -170,7 +170,7 @@ function runPoseMatchGame() {
   background(30);
   
   // 목표 포즈 표시 (왼쪽)
-  poseManager.drawTarget(150, 300);
+  poseManager.drawTarget(width * 0.2, height / 2);
   
   // 래그돌 그리기
   ragdoll.draw();
@@ -285,6 +285,15 @@ function mouseReleased() {
   
   if (currentState === STATE_POSE_MATCH || currentState === STATE_WALL_APPROACH) {
     ragdoll.stopDrag();
+  }
+}
+
+// 창 크기 변경 이벤트
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  // 래그돌 위치를 새로운 화면 중앙으로 업데이트
+  if (ragdoll) {
+    ragdoll.setPosition(width / 2, height / 2);
   }
 }
 

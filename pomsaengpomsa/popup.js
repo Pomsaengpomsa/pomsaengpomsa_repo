@@ -44,8 +44,8 @@ class Popup {
         rect(0, 0, width, height);
 
         // 팝업 창 치수 계산
-        let w = width * 0.8;
-        let h = height * 0.8;
+        let w = width * 0.6;
+        let h = height * 0.7;
         let x = width / 2;
         let y = height / 2;
 
@@ -81,10 +81,10 @@ class Popup {
         textAlign(CENTER, TOP);
         textLeading(30);
         
-        let textX = x - w / 2 + 30;
+        let textX = x - w / 2 + 40;
         let textY = y - h / 2 + 110;
-        let textW = w - 60;
-        let textH = h - 130;
+        let textW = w - 80;
+        let textH = h - 160;
 
         text(this.content, textX, textY, textW, textH);
 
