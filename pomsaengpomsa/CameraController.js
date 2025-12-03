@@ -456,10 +456,10 @@ class CameraController {
     
     // 비디오 피드 (중앙, 크게)
     if (this.video) {
-      let videoW = 480;
-      let videoH = 360;
+      let videoW = Math.min(480, width * 0.5); // 화면이 작으면 비례 축소
+      let videoH = videoW * 0.75; // 4:3 비율 유지
       let videoX = (width - videoW) / 2;
-      let videoY = (height - videoH) / 2 - 50;
+      let videoY = Math.max(10, (height - videoH) / 2 - 80); // 더 위로, 최소 10px 여백
       
       // 좌우 반전
       push();
@@ -511,9 +511,14 @@ class CameraController {
       rect(videoX, videoY, videoW, videoH);
     }
     
-    // T자 포즈 가이드 그리기
+    // 안내 UI 시작 Y 위치 (동적 계산)
+    let uiStartY = Math.min(height / 2 + 120, height - 280); // 하단에서 280px 여백 확보
+    
+    // T자 포즈 가이드 그리기 (작게, 왼쪽)
     push();
-    translate(width / 2 - 250, height / 2 + 200);
+    let guideX = Math.min(width / 2 - 200, width * 0.15);
+    translate(guideX, uiStartY + 40);
+    scale(0.7); // 약간 작게
     stroke(100, 255, 100);
     strokeWeight(4);
     noFill();
@@ -532,20 +537,20 @@ class CameraController {
     // 안내 텍스트 (화면 크기에 비례)
     fill(255);
     textAlign(CENTER);
-    textSize(width * 0.027); // 반응형 크기 (1200px 기준 32px)
-    text('T자 포즈를 취해주세요', width / 2, height / 2 + 200);
+    textSize(width * 0.027); // 반응형 크기
+    text('T자 포즈를 취해주세요', width / 2, uiStartY);
     
-    textSize(width * 0.015); // 반응형 크기 (1200px 기준 18px)
+    textSize(width * 0.015); // 반응형 크기
     fill(200);
-    text('← 이렇게 양팔을 수평으로 벌려주세요', width / 2, height / 2 + 240);
-    text('자세를 유지하면 자동으로 시작됩니다', width / 2, height / 2 + 270);
+    text('← 이렇게 양팔을 수평으로 벌려주세요', width / 2, uiStartY + 30);
+    text('자세를 유지하면 자동으로 시작됩니다', width / 2, uiStartY + 55);
     
-    // 진행률 바
+    // 진행률 바 (컴팩트하게)
     let progress = this.getCalibrationProgress();
-    let barW = 400;
-    let barH = 30;
+    let barW = Math.min(400, width * 0.4);
+    let barH = 25;
     let barX = (width - barW) / 2;
-    let barY = height / 2 + 310;
+    let barY = uiStartY + 90;
     
     // 배경
     fill(50, 50, 50);
@@ -561,16 +566,18 @@ class CameraController {
     // 진행률 텍스트 (화면 크기에 비례)
     fill(255);
     textSize(width * 0.013); // 반응형 크기
+    textAlign(CENTER, CENTER);
     text(`${(progress * 100).toFixed(0)}%`, width / 2, barY + barH / 2);
     
-    // 신뢰도 및 T자 포즈 상태 표시
+    // 신뢰도 및 T자 포즈 상태 표시 (컴팩트하게)
     if (this.poses.length > 0) {
       const avgConfidence = this.poses[0].pose.keypoints
         .reduce((sum, kp) => sum + kp.score, 0) / this.poses[0].pose.keypoints.length;
       
       fill(100, 255, 100);
-      textSize(width * 0.012); // 반응형 크기
-      text(`인식률: ${(avgConfidence * 100).toFixed(0)}%`, width / 2, barY + barH + 30);
+      textSize(width * 0.011); // 약간 작게
+      textAlign(CENTER);
+      text(`인식률: ${(avgConfidence * 100).toFixed(0)}%`, width / 2, barY + barH + 22);
       
       // T자 포즈 체크 상태
       const leftShoulder = this.getKeypoint('leftShoulder');
@@ -585,12 +592,12 @@ class CameraController {
         const leftArmNotDown = leftElbow.y < leftShoulder.y + 150;
         const rightArmNotDown = rightElbow.y < rightShoulder.y + 150;
         
-        textSize(width * 0.010); // 반응형 크기
+        textSize(width * 0.009); // 약간 작게
         fill(leftArmOut ? 100 : 255, 255, leftArmOut ? 100 : 100);
-        text(`왼팔 벌림: ${leftArmOut ? 'O' : 'X'}`, width / 2 - 100, barY + barH + 55);
+        text(`왼팔 벌림: ${leftArmOut ? 'O' : 'X'}`, width / 2 - 80, barY + barH + 42);
         
         fill(rightArmOut ? 100 : 255, 255, rightArmOut ? 100 : 100);
-        text(`오른팔 벌림: ${rightArmOut ? 'O' : 'X'}`, width / 2 + 100, barY + barH + 55);
+        text(`오른팔 벌림: ${rightArmOut ? 'O' : 'X'}`, width / 2 + 80, barY + barH + 42);
       }
     }
     
