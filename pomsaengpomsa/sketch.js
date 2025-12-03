@@ -8,9 +8,9 @@ let currentState = STATE_START;
 let controlMode = 'MOUSE'; // 'MOUSE' 또는 'CAMERA'
 let nextStateAfterCalibration = STATE_POSE_MATCH; // 캘리브레이션 후 이동할 상태
 
-// 캔버스 크기 제한
-const MIN_WIDTH = 1200;
-const MIN_HEIGHT = 750;
+// 캔버스 크기 제한 (작은 화면 지원)
+const MIN_WIDTH = 960;
+const MIN_HEIGHT = 600;
 const MAX_WIDTH = 1920;
 const MAX_HEIGHT = 1200;
 const ASPECT_RATIO = 16 / 10;

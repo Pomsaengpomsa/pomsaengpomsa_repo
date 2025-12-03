@@ -529,13 +529,13 @@ class CameraController {
     line(0, 20, 20, 60);
     pop();
     
-    // 안내 텍스트
+    // 안내 텍스트 (화면 크기에 비례)
     fill(255);
     textAlign(CENTER);
-    textSize(32);
+    textSize(width * 0.027); // 반응형 크기 (1200px 기준 32px)
     text('T자 포즈를 취해주세요', width / 2, height / 2 + 200);
     
-    textSize(18);
+    textSize(width * 0.015); // 반응형 크기 (1200px 기준 18px)
     fill(200);
     text('← 이렇게 양팔을 수평으로 벌려주세요', width / 2, height / 2 + 240);
     text('자세를 유지하면 자동으로 시작됩니다', width / 2, height / 2 + 270);
@@ -558,9 +558,9 @@ class CameraController {
       rect(barX, barY, barW * progress, barH, 15);
     }
     
-    // 진행률 텍스트
+    // 진행률 텍스트 (화면 크기에 비례)
     fill(255);
-    textSize(16);
+    textSize(width * 0.013); // 반응형 크기
     text(`${(progress * 100).toFixed(0)}%`, width / 2, barY + barH / 2);
     
     // 신뢰도 및 T자 포즈 상태 표시
@@ -569,7 +569,7 @@ class CameraController {
         .reduce((sum, kp) => sum + kp.score, 0) / this.poses[0].pose.keypoints.length;
       
       fill(100, 255, 100);
-      textSize(14);
+      textSize(width * 0.012); // 반응형 크기
       text(`인식률: ${(avgConfidence * 100).toFixed(0)}%`, width / 2, barY + barH + 30);
       
       // T자 포즈 체크 상태
@@ -585,7 +585,7 @@ class CameraController {
         const leftArmNotDown = leftElbow.y < leftShoulder.y + 150;
         const rightArmNotDown = rightElbow.y < rightShoulder.y + 150;
         
-        textSize(12);
+        textSize(width * 0.010); // 반응형 크기
         fill(leftArmOut ? 100 : 255, 255, leftArmOut ? 100 : 100);
         text(`왼팔 벌림: ${leftArmOut ? 'O' : 'X'}`, width / 2 - 100, barY + barH + 55);
         

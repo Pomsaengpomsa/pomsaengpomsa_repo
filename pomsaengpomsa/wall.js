@@ -265,7 +265,7 @@ class WallGame {
     
     fill(255);
     textAlign(CENTER);
-    textSize(16);
+    textSize(width * 0.013); // 반응형 크기
     text("목표 포즈", width - 130, 75);
     
     // 작은 포즈 그리기
@@ -281,7 +281,7 @@ class WallGame {
     
     push();
     textAlign(CENTER, CENTER);
-    textSize(80);
+    textSize(width * 0.067); // 반응형 크기
     stroke(0);
     strokeWeight(6);
     
@@ -289,7 +289,7 @@ class WallGame {
       fill(100, 255, 100);
       text("통과!", width/2, height/2 - 50);
       
-      textSize(30);
+      textSize(width * 0.025); // 반응형 크기
       noStroke();
       fill(255);
       text("완벽합니다! 🎉", width/2, height/2 + 20);
@@ -297,7 +297,7 @@ class WallGame {
       fill(255, 100, 100);
       text("충돌!", width/2, height/2 - 50);
       
-      textSize(30);
+      textSize(width * 0.025); // 반응형 크기
       noStroke();
       fill(255);
       text("포즈를 다시 맞춰보세요!", width/2, height/2 + 20);
