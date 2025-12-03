@@ -454,12 +454,14 @@ class CameraController {
     noStroke();
     rect(0, 0, width, height);
     
+    // 비디오 크기와 위치 계산 (블록 밖에서 선언)
+    let videoW = Math.min(480, width * 0.5); // 화면이 작으면 비례 축소
+    let videoH = videoW * 0.75; // 4:3 비율 유지
+    let videoX = (width - videoW) / 2;
+    let videoY = Math.max(10, (height - videoH) / 2 - 80); // 더 위로, 최소 10px 여백
+    
     // 비디오 피드 (중앙, 크게)
     if (this.video) {
-      let videoW = Math.min(480, width * 0.5); // 화면이 작으면 비례 축소
-      let videoH = videoW * 0.75; // 4:3 비율 유지
-      let videoX = (width - videoW) / 2;
-      let videoY = Math.max(10, (height - videoH) / 2 - 80); // 더 위로, 최소 10px 여백
       
       // 좌우 반전
       push();
@@ -509,15 +511,103 @@ class CameraController {
       strokeWeight(3);
       noFill();
       rect(videoX, videoY, videoW, videoH);
+      
+      // ===== 비디오 안에 진행률 바 (상단) =====
+      let progress = this.getCalibrationProgress();
+      push();
+      
+      // 진행률 바 (비디오 상단)
+      let barW = videoW * 0.85;
+      let barH = 20;
+      let barX = videoX + (videoW - barW) / 2;
+      let barY = videoY + 15;
+      
+      // 배경
+      fill(50, 50, 50);
+      noStroke();
+      rect(barX, barY, barW, barH, 10);
+      
+      // 진행률
+      if (progress > 0) {
+        fill(100, 255, 100);
+        rect(barX, barY, barW * progress, barH, 10);
+      }
+      
+      // 진행률 텍스트
+      fill(255);
+      textSize(videoW * 0.035);
+      textAlign(CENTER, CENTER);
+      text(`${(progress * 100).toFixed(0)}%`, videoX + videoW / 2, barY + barH / 2);
+      
+      pop();
+      
+      // ===== 비디오 안에 인식률과 팔 벌림 상태 오버레이 (하단) =====
+      push();
+      
+      // 반투명 배경 (비디오 하단)
+      fill(0, 0, 0, 180);
+      noStroke();
+      rect(videoX, videoY + videoH - 35, videoW, 35);
+      
+      textAlign(CENTER, CENTER);
+      
+      // 인식률 계산
+      let avgConfidence = 0;
+      if (this.poses.length > 0) {
+        avgConfidence = this.poses[0].pose.keypoints
+          .reduce((sum, kp) => sum + kp.score, 0) / this.poses[0].pose.keypoints.length;
+      }
+      
+      // 인식률 표시 (중앙)
+      fill(avgConfidence > 0 ? color(100, 255, 100) : color(150, 150, 150));
+      textSize(videoW * 0.04);
+      text(`인식률: ${(avgConfidence * 100).toFixed(0)}%`, videoX + videoW / 2, videoY + videoH - 17.5);
+      
+      // 팔 벌림 상태 (좌우)
+      if (this.poses.length > 0) {
+        const leftShoulder = this.getKeypoint('leftShoulder');
+        const rightShoulder = this.getKeypoint('rightShoulder');
+        const leftElbow = this.getKeypoint('leftElbow');
+        const rightElbow = this.getKeypoint('rightElbow');
+        
+        if (leftShoulder && rightShoulder && leftElbow && rightElbow) {
+          const leftArmOut = leftElbow.x > leftShoulder.x + 20;
+          const rightArmOut = rightElbow.x < rightShoulder.x - 20;
+          
+          textSize(videoW * 0.032);
+          
+          // 왼팔 (왼쪽)
+          fill(leftArmOut ? 100 : 255, 255, leftArmOut ? 100 : 100);
+          text(`왼팔:${leftArmOut ? 'O' : 'X'}`, videoX + videoW * 0.15, videoY + videoH - 17.5);
+          
+          // 오른팔 (오른쪽)
+          fill(rightArmOut ? 100 : 255, 255, rightArmOut ? 100 : 100);
+          text(`오른팔:${rightArmOut ? 'O' : 'X'}`, videoX + videoW * 0.85, videoY + videoH - 17.5);
+        } else {
+          // 팔 인식 전
+          textSize(videoW * 0.032);
+          fill(150, 150, 150);
+          text(`왼팔:-`, videoX + videoW * 0.15, videoY + videoH - 17.5);
+          text(`오른팔:-`, videoX + videoW * 0.85, videoY + videoH - 17.5);
+        }
+      } else {
+        // 포즈 인식 전
+        textSize(videoW * 0.032);
+        fill(150, 150, 150);
+        text(`왼팔:-`, videoX + videoW * 0.15, videoY + videoH - 17.5);
+        text(`오른팔:-`, videoX + videoW * 0.85, videoY + videoH - 17.5);
+      }
+      
+      pop();
     }
     
-    // 안내 UI 시작 Y 위치 (동적 계산)
-    let uiStartY = Math.min(height / 2 + 120, height - 280); // 하단에서 280px 여백 확보
+    // 안내 UI 시작 Y 위치 (비디오 바로 아래)
+    let uiStartY = videoY + videoH + 30; // 비디오 끝에서 30px 아래
     
     // T자 포즈 가이드 그리기 (작게, 왼쪽)
     push();
-    let guideX = Math.min(width / 2 - 200, width * 0.15);
-    translate(guideX, uiStartY + 40);
+    let guideX = Math.min(width / 2 - 180, 50);
+    translate(guideX, uiStartY + 35);
     scale(0.7); // 약간 작게
     stroke(100, 255, 100);
     strokeWeight(4);
@@ -544,62 +634,6 @@ class CameraController {
     fill(200);
     text('← 이렇게 양팔을 수평으로 벌려주세요', width / 2, uiStartY + 30);
     text('자세를 유지하면 자동으로 시작됩니다', width / 2, uiStartY + 55);
-    
-    // 진행률 바 (컴팩트하게)
-    let progress = this.getCalibrationProgress();
-    let barW = Math.min(400, width * 0.4);
-    let barH = 25;
-    let barX = (width - barW) / 2;
-    let barY = uiStartY + 90;
-    
-    // 배경
-    fill(50, 50, 50);
-    noStroke();
-    rect(barX, barY, barW, barH, 15);
-    
-    // 진행률
-    if (progress > 0) {
-      fill(100, 255, 100);
-      rect(barX, barY, barW * progress, barH, 15);
-    }
-    
-    // 진행률 텍스트 (화면 크기에 비례)
-    fill(255);
-    textSize(width * 0.013); // 반응형 크기
-    textAlign(CENTER, CENTER);
-    text(`${(progress * 100).toFixed(0)}%`, width / 2, barY + barH / 2);
-    
-    // 신뢰도 및 T자 포즈 상태 표시 (컴팩트하게)
-    if (this.poses.length > 0) {
-      const avgConfidence = this.poses[0].pose.keypoints
-        .reduce((sum, kp) => sum + kp.score, 0) / this.poses[0].pose.keypoints.length;
-      
-      fill(100, 255, 100);
-      textSize(width * 0.011); // 약간 작게
-      textAlign(CENTER);
-      text(`인식률: ${(avgConfidence * 100).toFixed(0)}%`, width / 2, barY + barH + 22);
-      
-      // T자 포즈 체크 상태
-      const leftShoulder = this.getKeypoint('leftShoulder');
-      const rightShoulder = this.getKeypoint('rightShoulder');
-      const leftElbow = this.getKeypoint('leftElbow');
-      const rightElbow = this.getKeypoint('rightElbow');
-      
-      if (leftShoulder && rightShoulder && leftElbow && rightElbow) {
-        // 카메라 좌우 반전 고려
-        const leftArmOut = leftElbow.x > leftShoulder.x + 20;
-        const rightArmOut = rightElbow.x < rightShoulder.x - 20;
-        const leftArmNotDown = leftElbow.y < leftShoulder.y + 150;
-        const rightArmNotDown = rightElbow.y < rightShoulder.y + 150;
-        
-        textSize(width * 0.009); // 약간 작게
-        fill(leftArmOut ? 100 : 255, 255, leftArmOut ? 100 : 100);
-        text(`왼팔 벌림: ${leftArmOut ? 'O' : 'X'}`, width / 2 - 80, barY + barH + 42);
-        
-        fill(rightArmOut ? 100 : 255, 255, rightArmOut ? 100 : 100);
-        text(`오른팔 벌림: ${rightArmOut ? 'O' : 'X'}`, width / 2 + 80, barY + barH + 42);
-      }
-    }
     
     pop();
   }
