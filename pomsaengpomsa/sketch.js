@@ -2,8 +2,11 @@
 const STATE_START = 0;
 const STATE_POSE_MATCH = 1;
 const STATE_WALL_APPROACH = 2;
+const STATE_CALIBRATION = 3;
 
 let currentState = STATE_START;
+let controlMode = 'MOUSE'; // 'MOUSE' 또는 'CAMERA'
+let nextStateAfterCalibration = STATE_POSE_MATCH; // 캘리브레이션 후 이동할 상태
 
 // 캔버스 크기 제한
 const MIN_WIDTH = 1200;
@@ -24,6 +27,12 @@ let brickTexture;
 
 //화면 객체
 let popup;
+let cameraController;
+
+// 자동 진행 관련 (카메라 모드 전용)
+let autoProgressTimer = 0;
+let autoProgressDelay = 60; // 1초 (60프레임)
+let isAutoProgressing = false;
 
 function preload() {
   grassTexture = loadImage('assets/grass.jpeg');
@@ -66,17 +75,45 @@ function setup() {
   wallGame = new WallGame(brickTexture);
 
   popup = new Popup();
+  
+  // 카메라 컨트롤러
+  cameraController = new CameraController();
 }
 
 function draw() {
   if (currentState === STATE_START) {
     drawStartScreen();
     popup.display();
+  } else if (currentState === STATE_CALIBRATION) {
+    // 캘리브레이션 화면
+    if (cameraController) {
+      cameraController.drawCalibrationScreen();
+      
+      // 자동 캘리브레이션 체크
+      if (cameraController.checkAutoCalibration()) {
+        currentState = nextStateAfterCalibration; // 설정된 다음 상태로 이동
+      }
+    }
   } else if (currentState === STATE_POSE_MATCH) {
     runPoseMatchGame();
   } else if (currentState === STATE_WALL_APPROACH) {
+    // 카메라 모드일 경우 포즈 업데이트
+    if (controlMode === 'CAMERA' && cameraController && cameraController.isCalibrated) {
+      const angles = cameraController.getPoseAngles();
+      if (angles) {
+        ragdoll.angles = angles;
+        ragdoll.updateJoints();
+      }
+    }
+    
     wallGame.update();
     wallGame.draw();
+    
+    // 카메라 피드 표시
+    if (controlMode === 'CAMERA' && cameraController) {
+      cameraController.drawVideoFeed();
+    }
+    
     drawBackButton();
   }
 }
@@ -111,9 +148,11 @@ function drawStartScreen() {
   text("- Perfect Pose -", width/2, height/4 + 60);
   
   // 버튼 그리기 함수
-  drawMenuButton("포즈 맞추기", width/2, height/2, 100, 200, 255);
-  drawMenuButton("벽 다가오기", width/2, height/2 + 80, 255, 150, 150);
-  drawMenuButton("게임 설명", width/2, height/2 + 160, 100, 255, 200);
+  drawMenuButton("포즈 맞추기 (마우스)", width/2, height/2 - 80, 100, 200, 255);
+  drawMenuButton("포즈 맞추기 (카메라)", width/2, height/2, 150, 100, 255);
+  drawMenuButton("벽 다가오기 (마우스)", width/2, height/2 + 80, 255, 150, 150);
+  drawMenuButton("벽 다가오기 (카메라)", width/2, height/2 + 160, 255, 100, 100);
+  drawMenuButton("게임 설명", width/2, height/2 + 240, 100, 255, 200);
   infoButton("i", 50, 50, 25, 100,100,100);
 }
 
@@ -196,6 +235,15 @@ function infoButton(label, x, y, cr, r,g,b) {
 function runPoseMatchGame() {
   background(30);
   
+  // 카메라 모드일 경우 포즈 업데이트
+  if (controlMode === 'CAMERA' && cameraController && cameraController.isCalibrated) {
+    const angles = cameraController.getPoseAngles();
+    if (angles) {
+      ragdoll.angles = angles;
+      ragdoll.updateJoints();
+    }
+  }
+  
   // 목표 포즈 표시 (왼쪽)
   poseManager.drawTarget(width * 0.2, height / 2);
   
@@ -204,10 +252,41 @@ function runPoseMatchGame() {
   
   // 점수 계산 (관절 위치 기반)
   let score = poseManager.calculateMatch(ragdoll.joints, ragdoll.angles);
-  uiManager.update(score);
+  uiManager.update(score, controlMode === 'CAMERA');
   
   // UI 그리기
   uiManager.draw(poseManager);
+  
+  // 카메라 피드 표시
+  if (controlMode === 'CAMERA' && cameraController) {
+    cameraController.drawVideoFeed();
+  }
+  
+  // 카메라 모드 자동 진행 로직
+  if (controlMode === 'CAMERA' && uiManager.isSuccess()) {
+    if (!isAutoProgressing) {
+      // 성공 상태 시작
+      isAutoProgressing = true;
+      autoProgressTimer = 0;
+    } else {
+      // 타이머 증가
+      autoProgressTimer++;
+      
+      // 일정 시간 후 자동으로 다음 포즈
+      if (autoProgressTimer >= autoProgressDelay) {
+        poseManager.nextPose();
+        ragdoll.reset();
+        isAutoProgressing = false;
+        autoProgressTimer = 0;
+      }
+    }
+  } else {
+    // 성공 상태가 아니면 타이머 리셋
+    if (isAutoProgressing) {
+      isAutoProgressing = false;
+      autoProgressTimer = 0;
+    }
+  }
   
   drawBackButton();
 }
@@ -253,18 +332,42 @@ function mousePressed() {
     let btnW = 240;
     let btnH = 60;
     let centerX = width/2;
-    let btn1Y = height/2;
-    let btn2Y = height/2 + 80;
-    let btn3Y = height/2 + 160;
+    let btn1Y = height/2 - 80;  // 포즈 맞추기 (마우스)
+    let btn2Y = height/2;       // 포즈 맞추기 (카메라)
+    let btn3Y = height/2 + 80;  // 벽 다가오기 (마우스)
+    let btn4Y = height/2 + 160; // 벽 다가오기 (카메라)
+    let btn5Y = height/2 + 240; // 게임 설명
     let infoBtnDist = dist(mouseX, mouseY, 50, 50) < 25;
     
     // 버튼 클릭 확인
     if (mouseX > centerX - btnW/2 && mouseX < centerX + btnW/2) {
       if (mouseY > btn1Y - btnH/2 && mouseY < btn1Y + btnH/2) {
+        // 포즈 맞추기 (마우스)
+        controlMode = 'MOUSE';
+        poseManager.setCameraMode(false); // 마우스용 포즈로 전환
         currentState = STATE_POSE_MATCH;
       } else if (mouseY > btn2Y - btnH/2 && mouseY < btn2Y + btnH/2) {
-        currentState = STATE_WALL_APPROACH;
+        // 포즈 맞추기 (카메라)
+        controlMode = 'CAMERA';
+        nextStateAfterCalibration = STATE_POSE_MATCH;
+        poseManager.setCameraMode(true); // 카메라용 포즈로 전환
+        cameraController.setup().then(() => {
+          currentState = STATE_CALIBRATION;
+        });
       } else if (mouseY > btn3Y - btnH/2 && mouseY < btn3Y + btnH/2) {
+        // 벽 다가오기 (마우스)
+        controlMode = 'MOUSE';
+        poseManager.setCameraMode(false); // 마우스용 포즈로 전환
+        currentState = STATE_WALL_APPROACH;
+      } else if (mouseY > btn4Y - btnH/2 && mouseY < btn4Y + btnH/2) {
+        // 벽 다가오기 (카메라)
+        controlMode = 'CAMERA';
+        nextStateAfterCalibration = STATE_WALL_APPROACH;
+        poseManager.setCameraMode(true); // 카메라용 포즈로 전환
+        cameraController.setup().then(() => {
+          currentState = STATE_CALIBRATION;
+        });
+      } else if (mouseY > btn5Y - btnH/2 && mouseY < btn5Y + btnH/2) {
         popup.open("게임 설명",
           "-마우스 조작-\n" +
           "캐릭터의 관절(작은 원)을 잡고 마우스로 드래그하여 포즈를 만듭니다.\n" +
@@ -287,6 +390,8 @@ function mousePressed() {
     // 뒤로가기 버튼 (좌상단)
     if (mouseX > 10 && mouseX < 90 && mouseY > 10 && mouseY < 40) {
       currentState = STATE_START;
+      controlMode = 'MOUSE'; // 마우스 모드로 리셋
+      poseManager.setCameraMode(false); // 마우스용 포즈로 리셋
       // Reset game states if needed
       if (ragdoll) ragdoll.reset();
       if (wallGame) wallGame.createNewWall();
@@ -328,6 +433,14 @@ function windowResized() {
 // 키보드 이벤트
 function keyPressed() {
   if (popup.isActive()) return;
+
+  // 캘리브레이션 상태에서 ESC: 취소
+  if (currentState === STATE_CALIBRATION) {
+    if (keyCode === ESCAPE) {
+      currentState = STATE_START;
+      cameraController.cleanup();
+    }
+  }
 
   if (currentState === STATE_POSE_MATCH) {
     // 스페이스바: 래그돌 리셋

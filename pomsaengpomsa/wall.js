@@ -183,7 +183,10 @@ class WallGame {
     // 래그돌과 목표 포즈 비교
     let score = this.poseManager.calculateMatch(this.ragdoll.joints, this.ragdoll.angles);
     
-    if (score >= 65) { // 65점 이상이면 통과
+    // 카메라 모드일 때는 난이도 낮춤 (55%), 마우스 모드는 65%
+    let threshold = (controlMode === 'CAMERA') ? 55 : 65;
+    
+    if (score >= threshold) {
       this.gameState = 'SUCCESS';
       this.feedbackTimer = 90; // 1.5초
     } else {
