@@ -15,13 +15,95 @@
       align-items: center;
       min-height: 100vh;
       overflow: hidden;
+      font-family: sans-serif;
     }
     canvas {
       display: block;
       box-shadow: 0 0 30px rgba(0, 243, 255, 0.3);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: -1;
+    }
+    #menu-container {
+      color: white;
+      text-align: center;
+      background-color: rgba(30, 30, 40, 0.9);
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      width: 350px;
+    }
+    #menu-container h1 {
+      margin: 0 0 5px 0;
+      font-size: 45px;
+      color: #ffdc64;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    #menu-container h2 {
+      margin: 0 0 30px 0;
+      font-size: 20px;
+      color: #bbb;
+      font-weight: normal;
+    }
+    #menu-container input {
+      padding: 12px;
+      border: 2px solid #555;
+      border-radius: 5px;
+      background-color: #333;
+      color: white;
+      text-align: center;
+      font-size: 18px;
+      margin-bottom: 25px;
+      width: 80%;
+    }
+    #menu-container label {
+      font-size: 20px;
+      color: #bbb;
+      display: block;
+      margin-bottom: 12px;
+    }
+    #menu-container .button-group {
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+    #menu-container button {
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background-color: #555;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      flex-grow: 1;
+    }
+    #menu-container button.active {
+      background-color: #00aaff;
+    }
+    #menu-container button:hover:not(.active) {
+      background-color: #777;
+    }
+    #start-game-btn:not(:disabled) {
+      background-color: #ff4444;
+    }
+    #start-game-btn:not(:disabled):hover {
+      background-color: #cc2222;
+    }
+    #start-game-btn:disabled {
+      background-color: #444;
+      color: #888;
+      cursor: not-allowed;
+    }
+    #start-game-btn:disabled:hover {
+      background-color: #444;
     }
   </style>
   <script src="../p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.dom.min.js"></script>
   <!-- <script src="../addons/p5.sound.js"></script> -->
   <script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
   <script src="CameraController.js"></script>
@@ -30,12 +112,33 @@
   <script src="UI.js"></script>
   <script src="wall.js"></script>
   <script src="popup.js"></script>
+  <script src="LocalStorageManager.js"></script>
   <script src="sketch.js"></script>
 </head>
 
 <body>
   <main>
   </main>
+  <div id="menu-container">
+    <h1>폼생폼사</h1>
+    <h2>- Perfect Pose -</h2>
+
+    <input type="text" id="nickname-input" placeholder="닉네임 입력" maxlength="10">
+    
+    <label>모드 선택</label>
+    <div class="button-group">
+      <button id="mouse-btn" class="active">마우스</button>
+      <button id="camera-btn">카메라</button>
+    </div>
+
+    <label>맵 선택</label>
+    <div class="button-group">
+      <button id="pose-map-btn" class="active">포즈</button>
+      <button id="wall-map-btn">맵</button>
+    </div>
+
+    <button id="start-game-btn">게임 시작하기</button>
+  </div>
 </body>
 
 </html>

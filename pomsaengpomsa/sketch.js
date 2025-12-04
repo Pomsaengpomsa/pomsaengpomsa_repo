@@ -29,6 +29,16 @@ let brickTexture;
 let popup;
 let cameraController;
 
+// 메뉴 요소
+let menuContainer;
+let nicknameInput;
+let mouseBtn, cameraBtn;
+let poseMapBtn, wallMapBtn;
+let startGameBtn;
+let selectedMode = 'MOUSE';
+let selectedMap = 'POSE';
+
+
 // 자동 진행 관련 (카메라 모드 전용)
 let autoProgressTimer = 0;
 let autoProgressDelay = 60; // 1초 (60프레임)
@@ -62,6 +72,53 @@ function setup() {
   let canvasSize = calculateCanvasSize();
   createCanvas(canvasSize.width, canvasSize.height);
   
+  // --- 새로운 메뉴 UI 요소 ---
+  menuContainer = select('#menu-container');
+  nicknameInput = select('#nickname-input');
+  mouseBtn = select('#mouse-btn');
+  cameraBtn = select('#camera-btn');
+  poseMapBtn = select('#pose-map-btn');
+  wallMapBtn = select('#wall-map-btn');
+  startGameBtn = select('#start-game-btn');
+
+  // 닉네임 입력에 따른 게임 시작 버튼 활성화/비활성화
+  nicknameInput.input(() => {
+    if (nicknameInput.value().trim() === '') {
+      startGameBtn.attribute('disabled', '');
+    } else {
+      startGameBtn.removeAttribute('disabled');
+    }
+  });
+  startGameBtn.attribute('disabled', ''); // 초기에는 비활성화
+
+  // 버튼 클릭 이벤트 핸들러
+  mouseBtn.mousePressed(() => {
+    selectedMode = 'MOUSE';
+    mouseBtn.addClass('active');
+    cameraBtn.removeClass('active');
+  });
+
+  cameraBtn.mousePressed(() => {
+    selectedMode = 'CAMERA';
+    cameraBtn.addClass('active');
+    mouseBtn.removeClass('active');
+  });
+
+  poseMapBtn.mousePressed(() => {
+    selectedMap = 'POSE';
+    poseMapBtn.addClass('active');
+    wallMapBtn.removeClass('active');
+  });
+
+  wallMapBtn.mousePressed(() => {
+    selectedMap = 'WALL';
+    wallMapBtn.addClass('active');
+    poseMapBtn.removeClass('active');
+  });
+
+  startGameBtn.mousePressed(startGame);
+
+
   // 래그돌 생성 (화면 중앙)
   ragdoll = new Ragdoll(width / 2, height / 2);
   
@@ -81,9 +138,16 @@ function setup() {
 }
 
 function draw() {
-  if (currentState === STATE_START) {
-    drawStartScreen();
-    popup.display();
+    background(20, 20, 30);
+    if (currentState === STATE_START) {
+        drawStartScreen();
+        popup.display();
+        if (!popup.isActive()) {
+            menuContainer.style('display', 'block');
+        } else {
+            menuContainer.style('display', 'none');
+        }
+
   } else if (currentState === STATE_CALIBRATION) {
     // 캘리브레이션 화면
     if (cameraController) {
@@ -119,7 +183,6 @@ function draw() {
 }
 
 function drawStartScreen() {
-  background(20, 20, 30);
   
   // 장식용 배경 패턴 (간단한 격자)
   stroke(50);
@@ -131,29 +194,51 @@ function drawStartScreen() {
     line(0, y, width, y);
   }
   
-  // 타이틀
-  textAlign(CENTER, CENTER);
-  
-  // 그림자 효과
-  fill(0, 0, 0, 100);
-  textSize(60);
-  text("폼생폼사", width/2 + 4, height/4 + 4);
-  
-  // 메인 텍스트
-  fill(255, 220, 100);
-  text("폼생폼사", width/2, height/4);
-  
-  fill(200);
-  textSize(24);
-  text("- Perfect Pose -", width/2, height/4 + 60);
-  
-  // 버튼 그리기 함수
-  drawMenuButton("포즈 맞추기 (마우스)", width/2, height/2 - 80, 100, 200, 255);
-  drawMenuButton("포즈 맞추기 (카메라)", width/2, height/2, 150, 100, 255);
-  drawMenuButton("벽 다가오기 (마우스)", width/2, height/2 + 80, 255, 150, 150);
-  drawMenuButton("벽 다가오기 (카메라)", width/2, height/2 + 160, 255, 100, 100);
-  drawMenuButton("게임 설명", width/2, height/2 + 240, 100, 255, 200);
   infoButton("i", 50, 50, 25, 100,100,100);
+}
+
+
+function startGame() {
+  let nickname = nicknameInput.value();
+  if (nickname.trim() === '') {
+    popup.open("오류", "닉네임을 입력해주세요.");
+    return;
+  }
+
+  // 닉네임 중복 확인 로직 (옵션)
+  let scores = LocalStorageManager.getItem('poseGameScores') || [];
+  let isDuplicate = scores.some(score => score.nickname === nickname);
+  if (isDuplicate) {
+    popup.open("오류", "이미 사용중인 닉네임입니다.");
+    return;
+  }
+  
+  menuContainer.style('display', 'none');
+  controlMode = selectedMode;
+
+  if (selectedMap === 'POSE') {
+    if (controlMode === 'MOUSE') {
+      poseManager.setCameraMode(false);
+      currentState = STATE_POSE_MATCH;
+    } else { // CAMERA
+      nextStateAfterCalibration = STATE_POSE_MATCH;
+      poseManager.setCameraMode(true);
+      cameraController.setup().then(() => {
+        currentState = STATE_CALIBRATION;
+      });
+    }
+  } else { // WALL
+    if (controlMode === 'MOUSE') {
+      poseManager.setCameraMode(false);
+      currentState = STATE_WALL_APPROACH;
+    } else { // CAMERA
+      nextStateAfterCalibration = STATE_WALL_APPROACH;
+      poseManager.setCameraMode(true);
+      cameraController.setup().then(() => {
+        currentState = STATE_CALIBRATION;
+      });
+    }
+  }
 }
 
 function drawMenuButton(label, x, y, r, g, b) {
@@ -329,57 +414,8 @@ function mousePressed() {
   }
 
   if (currentState === STATE_START) {
-    let btnW = 240;
-    let btnH = 60;
-    let centerX = width/2;
-    let btn1Y = height/2 - 80;  // 포즈 맞추기 (마우스)
-    let btn2Y = height/2;       // 포즈 맞추기 (카메라)
-    let btn3Y = height/2 + 80;  // 벽 다가오기 (마우스)
-    let btn4Y = height/2 + 160; // 벽 다가오기 (카메라)
-    let btn5Y = height/2 + 240; // 게임 설명
     let infoBtnDist = dist(mouseX, mouseY, 50, 50) < 25;
     
-    // 버튼 클릭 확인
-    if (mouseX > centerX - btnW/2 && mouseX < centerX + btnW/2) {
-      if (mouseY > btn1Y - btnH/2 && mouseY < btn1Y + btnH/2) {
-        // 포즈 맞추기 (마우스)
-        controlMode = 'MOUSE';
-        poseManager.setCameraMode(false); // 마우스용 포즈로 전환
-        currentState = STATE_POSE_MATCH;
-      } else if (mouseY > btn2Y - btnH/2 && mouseY < btn2Y + btnH/2) {
-        // 포즈 맞추기 (카메라)
-        controlMode = 'CAMERA';
-        nextStateAfterCalibration = STATE_POSE_MATCH;
-        poseManager.setCameraMode(true); // 카메라용 포즈로 전환
-        cameraController.setup().then(() => {
-          currentState = STATE_CALIBRATION;
-        });
-      } else if (mouseY > btn3Y - btnH/2 && mouseY < btn3Y + btnH/2) {
-        // 벽 다가오기 (마우스)
-        controlMode = 'MOUSE';
-        poseManager.setCameraMode(false); // 마우스용 포즈로 전환
-        currentState = STATE_WALL_APPROACH;
-      } else if (mouseY > btn4Y - btnH/2 && mouseY < btn4Y + btnH/2) {
-        // 벽 다가오기 (카메라)
-        controlMode = 'CAMERA';
-        nextStateAfterCalibration = STATE_WALL_APPROACH;
-        poseManager.setCameraMode(true); // 카메라용 포즈로 전환
-        cameraController.setup().then(() => {
-          currentState = STATE_CALIBRATION;
-        });
-      } else if (mouseY > btn5Y - btnH/2 && mouseY < btn5Y + btnH/2) {
-        popup.open("게임 설명",
-          "-마우스 조작-\n" +
-          "캐릭터의 관절(작은 원)을 잡고 마우스로 드래그하여 포즈를 만듭니다.\n" +
-          "-카메라 인식-\n" +
-          "카메라로 몸의 움직임을 인식하여 캐릭터를 움직입니다.\n\n" +
-          "1. 포즈 맞추기 모드\n" +
-          "목표 포즈와 캐릭터 포즈의 일치율을 높여 점수를 얻으세요\n" +
-          "2. 벽 다가오기 모드\n" +
-          "다가오는 벽의 구멍에 캐릭터를 맞춰 통과하세요\n"
-        );
-      }
-    }
     if (infoBtnDist) {
       popup.open("INFORMATION",
         "Developer\n" +
@@ -390,6 +426,7 @@ function mousePressed() {
     // 뒤로가기 버튼 (좌상단)
     if (mouseX > 10 && mouseX < 90 && mouseY > 10 && mouseY < 40) {
       currentState = STATE_START;
+      menuContainer.style('display', 'block');
       controlMode = 'MOUSE'; // 마우스 모드로 리셋
       poseManager.setCameraMode(false); // 마우스용 포즈로 리셋
       // Reset game states if needed
@@ -455,3 +492,4 @@ function keyPressed() {
     }
   }
 }
+
