@@ -624,16 +624,19 @@ class CameraController {
     line(0, 20, 20, 60);
     pop();
     
-    // 안내 텍스트 (화면 크기에 비례)
+    // 안내 텍스트 (화면 크기에 비례하되 최대 크기 제한)
+    noStroke(); // 이전 stroke 속성 초기화 (네온 효과 제거)
     fill(255);
     textAlign(CENTER);
-    textSize(width * 0.027); // 반응형 크기
+    let mainTextSize = Math.min(32, width * 0.027);
+    textSize(mainTextSize); 
     text('T자 포즈를 취해주세요', width / 2, uiStartY);
     
-    textSize(width * 0.015); // 반응형 크기
-    fill(200);
-    text('← 이렇게 양팔을 수평으로 벌려주세요', width / 2, uiStartY + 30);
-    text('자세를 유지하면 자동으로 시작됩니다', width / 2, uiStartY + 55);
+    let subTextSize = Math.min(18, width * 0.015);
+    textSize(subTextSize); 
+    fill(220); // 약간 더 밝게 변경
+    text('← 이렇게 양팔을 수평으로 벌려주세요', width / 2, uiStartY + mainTextSize + 10);
+    text('자세를 유지하면 자동으로 시작됩니다', width / 2, uiStartY + mainTextSize + subTextSize + 20);
     
     pop();
   }

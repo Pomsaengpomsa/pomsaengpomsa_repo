@@ -194,22 +194,6 @@ function drawStartScreen() {
     line(0, y, width, y);
   }
   
-  // 타이틀
-  textAlign(CENTER, CENTER);
-  
-  // 그림자 효과
-  fill(0, 0, 0, 100);
-  textSize(60);
-  text("폼생폼사", width/2 + 4, height/4 + 4);
-  
-  // 메인 텍스트
-  fill(255, 220, 100);
-  text("폼생폼사", width/2, height/4);
-  
-  fill(200);
-  textSize(24);
-  text("- Perfect Pose -", width/2, height/4 + 60);
-  
   infoButton("i", 50, 50, 25, 100,100,100);
 }
 

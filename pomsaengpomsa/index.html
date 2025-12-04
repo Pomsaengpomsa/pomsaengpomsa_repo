@@ -35,6 +35,18 @@
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
       width: 350px;
     }
+    #menu-container h1 {
+      margin: 0 0 5px 0;
+      font-size: 45px;
+      color: #ffdc64;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    #menu-container h2 {
+      margin: 0 0 30px 0;
+      font-size: 20px;
+      color: #bbb;
+      font-weight: normal;
+    }
     #menu-container input {
       padding: 12px;
       border: 2px solid #555;
@@ -107,8 +119,11 @@
 <body>
   <main>
   </main>
-  <div id="menu-container" style="display: none;">
-    <input type="text" id="nickname-input" placeholder="닉네임 입력">
+  <div id="menu-container">
+    <h1>폼생폼사</h1>
+    <h2>- Perfect Pose -</h2>
+
+    <input type="text" id="nickname-input" placeholder="닉네임 입력" maxlength="10">
     
     <label>모드 선택</label>
     <div class="button-group">
