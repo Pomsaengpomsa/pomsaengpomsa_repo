@@ -7,15 +7,15 @@ class CameraController {
     this.isReady = false;
     this.isCalibrated = false;
     this.calibrationData = null;
-    this.smoothingFactor = 0.15; // 안정성 우선 (0.25 -> 0.15)
+    this.smoothingFactor = 0.1; // 안정성 강화 (0.15 -> 0.1)
     
     // 이전 포즈 데이터 (스무딩용)
     this.prevAngles = null;
     
     // 이상치 필터링
-    this.maxAngleChange = 0.3; // 급격한 변화 제한 강화 (0.8 -> 0.3)
-    this.deadZone = 0.02; // 데드존 약간 증가 (떨림 방지)
-    this.minConfidenceForUpdate = 0.4; // 각도 업데이트를 위한 최소 신뢰도
+    this.maxAngleChange = 0.3; // 급격한 변화 제한
+    this.deadZone = 0.04; // 데드존 증가 (0.02 -> 0.04, 약 2.3도)
+    this.minConfidenceForUpdate = 0.5; // 신뢰도 기준 강화 (0.4 -> 0.5)
     
     // 자동 캘리브레이션
     this.calibrationFrames = 0;
@@ -30,9 +30,24 @@ class CameraController {
       this.video.size(640, 480);
       this.video.hide();
       
-      // PoseNet 모델 로드
-      this.poseNet = ml5.poseNet(this.video, () => {
-        console.log('PoseNet 모델 로드 완료!');
+      // PoseNet 모델 로드 (정확도 향상 옵션 적용)
+      const poseNetOptions = {
+        architecture: 'MobileNetV1',
+        imageScaleFactor: 0.5, // 0.3 -> 0.5 (더 큰 이미지 분석)
+        outputStride: 16,
+        flipHorizontal: false,
+        minConfidence: 0.5,
+        maxPoseDetections: 2, // 5 -> 2 (불필요한 인물 감지 제거)
+        scoreThreshold: 0.5,
+        nmsRadius: 20,
+        detectionType: 'single', // multiple -> single (한 명만 집중)
+        inputResolution: 513, // 257 -> 513 (해상도 2배 증가: 정확도 대폭 상승)
+        multiplier: 1.0, // 0.75 -> 1.0 (모델 크기 증가: 인식률 상승)
+        quantBytes: 2,
+      };
+      
+      this.poseNet = ml5.poseNet(this.video, poseNetOptions, () => {
+        console.log('PoseNet 모델 로드 완료! (고정확도 모드)');
         this.isReady = true;
       });
       
@@ -319,12 +334,8 @@ class CameraController {
       while (angleDiff > PI) angleDiff -= TWO_PI;
       while (angleDiff < -PI) angleDiff += TWO_PI;
       
-      // 데드존: 작은 변화는 무시 (무릎은 더 민감하게)
-      let deadZone = this.deadZone;
-      if (key === 'leftKnee' || key === 'rightKnee') {
-        deadZone = 0.01; // 무릎은 더 작은 데드존
-      }
-      if (abs(angleDiff) < deadZone) {
+      // 데드존: 작은 변화는 무시
+      if (abs(angleDiff) < this.deadZone) {
         smoothedAngles[key] = this.prevAngles[key];
         continue;
       }
@@ -338,11 +349,9 @@ class CameraController {
         while (target < -PI) target += TWO_PI;
       }
       
-      // 최단 거리 보간 (스무딩) - 무릎은 더 빠르게 반응
+      // 최단 거리 보간 (스무딩)
+      // 무릎 빠른 반응 제거 (안정성 위주)
       let smoothing = this.smoothingFactor;
-      if (key === 'leftKnee' || key === 'rightKnee') {
-        smoothing = 0.25; // 무릎은 더 빠르게 반응 (0.15 -> 0.25)
-      }
       smoothedAngles[key] = this.lerpAngle(this.prevAngles[key], target, smoothing);
     }
 
