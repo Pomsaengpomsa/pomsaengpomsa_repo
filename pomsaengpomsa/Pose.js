@@ -2,8 +2,140 @@
 class PoseManager {
   constructor() {
     this.poses = [];
+    this.cameraPoses = []; // 카메라 모드 전용 포즈
     this.currentIndex = 0;
+    this.isCameraMode = false;
     this.initPoses();
+    this.initCameraPoses();
+  }
+  
+  // 카메라 모드로 전환
+  setCameraMode(isCamera) {
+    this.isCameraMode = isCamera;
+    this.currentIndex = 0; // 포즈 초기화
+  }
+  
+  // 카메라 모드 전용 포즈 (허리/목 고정, 팔 위로 X, 팔 꼬기 X)
+  initCameraPoses() {
+    // 포즈 1: T자 (팔 양옆 수평)
+    this.cameraPoses.push({
+      name: "T자 포즈",
+      angles: {
+        neck: 0, waist: 0,
+        leftShoulder: PI, leftElbow: 0,
+        rightShoulder: 0, rightElbow: 0,
+        leftHip: 0, leftKnee: 0,
+        rightHip: 0, rightKnee: 0
+      }
+    });
+    
+    // 포즈 2: 양팔 앞으로
+    this.cameraPoses.push({
+      name: "양팔 앞으로",
+      angles: {
+        neck: 0, waist: 0,
+        leftShoulder: PI/2, leftElbow: 0,
+        rightShoulder: PI/2, rightElbow: 0,
+        leftHip: 0, leftKnee: 0,
+        rightHip: 0, rightKnee: 0
+      }
+    });
+    
+    // 포즈 3: 양팔 옆으로 약간 들기
+    this.cameraPoses.push({
+      name: "팔 약간 들기",
+      angles: {
+        neck: 0, waist: 0,
+        leftShoulder: PI * 3/4, leftElbow: 0,
+        rightShoulder: PI/4, rightElbow: 0,
+        leftHip: 0, leftKnee: 0,
+        rightHip: 0, rightKnee: 0
+      }
+    });
+    
+    // 포즈 4: 팔꿈치 구부리기 (양팔)
+    this.cameraPoses.push({
+      name: "팔꿈치 구부리기",
+      angles: {
+        neck: 0, waist: 0,
+        leftShoulder: PI, leftElbow: PI/2,
+        rightShoulder: 0, rightElbow: PI/2,
+        leftHip: 0, leftKnee: 0,
+        rightHip: 0, rightKnee: 0
+      }
+    });
+    
+    // 포즈 5: 왼팔 앞으로
+    this.cameraPoses.push({
+      name: "왼팔 앞으로",
+      angles: {
+        neck: 0, waist: 0,
+        leftShoulder: PI/2, leftElbow: 0,
+        rightShoulder: 0, rightElbow: 0,
+        leftHip: 0, leftKnee: 0,
+        rightHip: 0, rightKnee: 0
+      }
+    });
+    
+    // 포즈 6: 오른팔 앞으로
+    this.cameraPoses.push({
+      name: "오른팔 앞으로",
+      angles: {
+        neck: 0, waist: 0,
+        leftShoulder: PI, leftElbow: 0,
+        rightShoulder: PI/2, rightElbow: 0,
+        leftHip: 0, leftKnee: 0,
+        rightHip: 0, rightKnee: 0
+      }
+    });
+    
+    // 포즈 7: 다리 벌리기 (T자 + 다리)
+    this.cameraPoses.push({
+      name: "다리 벌리기",
+      angles: {
+        neck: 0, waist: 0,
+        leftShoulder: PI, leftElbow: 0,
+        rightShoulder: 0, rightElbow: 0,
+        leftHip: PI/6, leftKnee: 0,
+        rightHip: -PI/6, rightKnee: 0
+      }
+    });
+    
+    // 포즈 8: 왼쪽 무릎 구부리기 (완전한 ㄱ자)
+    this.cameraPoses.push({
+      name: "왼쪽 무릎 구부리기",
+      angles: {
+        neck: 0, waist: 0,
+        leftShoulder: PI, leftElbow: 0,
+        rightShoulder: 0, rightElbow: 0,
+        leftHip: PI/3, leftKnee: -PI/2,  // 넓적다리 들고, 종아리는 아래로
+        rightHip: 0, rightKnee: 0
+      }
+    });
+    
+    // 포즈 9: 오른쪽 무릎 구부리기 (완전한 ㄱ자 - 수정됨)
+    this.cameraPoses.push({
+      name: "오른쪽 무릎 구부리기",
+      angles: {
+        neck: 0, waist: 0,
+        leftShoulder: PI, leftElbow: 0,
+        rightShoulder: 0, rightElbow: 0,
+        leftHip: 0, leftKnee: 0,
+        rightHip: -PI/2, rightKnee: PI/2  // 넓적다리 수평(-90), 종아리 아래로(+90 상쇄)
+      }
+    });
+    
+    // 포즈 10: 양손 모으기 (앞으로)
+    this.cameraPoses.push({
+      name: "양손 모으기",
+      angles: {
+        neck: 0, waist: 0,
+        leftShoulder: PI/2, leftElbow: PI/4,
+        rightShoulder: PI/2, rightElbow: -PI/4,
+        leftHip: 0, leftKnee: 0,
+        rightHip: 0, rightKnee: 0
+      }
+    });
   }
   
   initPoses() {
@@ -178,17 +310,24 @@ class PoseManager {
     });
   }
   
+  // 현재 사용 중인 포즈 배열 반환
+  getActivePoses() {
+    return this.isCameraMode ? this.cameraPoses : this.poses;
+  }
+  
   getCurrentPose() {
-    return this.poses[this.currentIndex];
+    const activePoses = this.getActivePoses();
+    return activePoses[this.currentIndex];
   }
   
   nextPose() {
-    this.currentIndex = (this.currentIndex + 1) % this.poses.length;
+    const activePoses = this.getActivePoses();
+    this.currentIndex = (this.currentIndex + 1) % activePoses.length;
     return this.getCurrentPose();
   }
   
   getTotalPoses() {
-    return this.poses.length;
+    return this.getActivePoses().length;
   }
   
   // 현재 래그돌 포즈와 목표 포즈 비교 (관절 점 위치 기반)
