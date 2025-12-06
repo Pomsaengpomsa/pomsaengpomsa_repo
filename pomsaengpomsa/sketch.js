@@ -3,7 +3,13 @@ const STATE_START = 0;
 const STATE_POSE_MATCH = 1;
 const STATE_WALL_APPROACH = 2;
 const STATE_CALIBRATION = 3;
+const STATE_ENDING_SCORE = 4; // 게임 종료 상태 추가
 
+// 게임 타이머 관련
+let gameTimer;
+let gameDuration = 5; // 1분 (60초)
+let gameStartTime;
+ 
 let currentState = STATE_START;
 let controlMode = 'MOUSE'; // 'MOUSE' 또는 'CAMERA'
 let nextStateAfterCalibration = STATE_POSE_MATCH; // 캘리브레이션 후 이동할 상태
@@ -37,6 +43,7 @@ let poseMapBtn, wallMapBtn;
 let startGameBtn;
 let selectedMode = 'MOUSE';
 let selectedMap = 'POSE';
+let nickname;
 
 
 // 자동 진행 관련 (카메라 모드 전용)
@@ -172,6 +179,9 @@ function draw() {
     
     wallGame.update();
     wallGame.draw();
+
+    // 래그돌 그리기 추가
+    ragdoll.draw();
     
     // 카메라 피드 표시
     if (controlMode === 'CAMERA' && cameraController) {
@@ -179,6 +189,11 @@ function draw() {
     }
     
     drawBackButton();
+    updateAndDrawTimer(); // 타이머 업데이트 및 표시
+  } else if (currentState === STATE_ENDING_SCORE) {
+    // menuContainer.style('display', 'block');
+    // 게임 종료 화면
+    drawEndingScore(nickname);
   }
 }
 
@@ -199,7 +214,7 @@ function drawStartScreen() {
 
 
 function startGame() {
-  let nickname = nicknameInput.value();
+  nickname = nicknameInput.value();
   if (nickname.trim() === '') {
     popup.open("오류", "닉네임을 입력해주세요.");
     return;
@@ -215,6 +230,9 @@ function startGame() {
   
   menuContainer.style('display', 'none');
   controlMode = selectedMode;
+
+  // 게임 모드와 관계없이 타이머 시작
+  gameStartTime = millis();
 
   if (selectedMap === 'POSE') {
     if (controlMode === 'MOUSE') {
@@ -343,6 +361,7 @@ function runPoseMatchGame() {
   uiManager.draw(poseManager);
   
   // 카메라 피드 표시
+  updateAndDrawTimer(); // 타이머 업데이트 및 표시
   if (controlMode === 'CAMERA' && cameraController) {
     cameraController.drawVideoFeed();
   }
@@ -376,6 +395,26 @@ function runPoseMatchGame() {
   drawBackButton();
 }
 
+function updateAndDrawTimer() {
+  let elapsedTime = (millis() - gameStartTime) / 1000; // 초 단위로 경과 시간 계산
+  let remainingTime = gameDuration - elapsedTime;
+
+  if (remainingTime <= 0) {
+    remainingTime = 0;
+    if (currentState !== STATE_ENDING_SCORE) {
+      currentState = STATE_ENDING_SCORE;
+    }
+  }
+
+  // 남은 시간 표시
+  push();
+  fill(255);
+  textSize(32);
+  textAlign(CENTER, TOP);
+  text(`남은 시간: ${ceil(remainingTime)}초`, width / 2, 20);
+  pop();
+}
+
 function drawBackButton() {
   push();
   let btnX = 10;
@@ -407,6 +446,19 @@ function drawBackButton() {
   pop();
 }
 
+function resetGame() {
+  currentState = STATE_START;
+  menuContainer.style('display', 'block');
+  
+  // 게임 상태 초기화
+  controlMode = 'MOUSE';
+  poseManager.setCameraMode(false);
+  ragdoll.reset();
+  wallGame.createNewWall(); // 벽 게임 상태 리셋
+  cameraController.cleanup(); // 카메라 리소스 정리
+  nicknameInput.value(''); // 닉네임 입력 필드 초기화
+}
+
 // 마우스 이벤트
 function mousePressed() {
   if (popup.handleClick()) { // 팝업이 켜져있으면 뒷배경 선택 차단
@@ -422,17 +474,20 @@ function mousePressed() {
         "숭실대학교 디지털미디어학과 25학번 김동민, 이가영, 임소연\n"
       );
     }
+  } else if (currentState === STATE_ENDING_SCORE) {
+    // "처음으로" 버튼 클릭 확인
+    let btnX = width / 2;
+    let btnY = height - 100;
+    let btnW = 240;
+    let btnH = 60;
+    if (mouseX > btnX - btnW / 2 && mouseX < btnX + btnW / 2 &&
+        mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2) {
+      resetGame();
+    }
   } else {
     // 뒤로가기 버튼 (좌상단)
     if (mouseX > 10 && mouseX < 90 && mouseY > 10 && mouseY < 40) {
-      currentState = STATE_START;
-      menuContainer.style('display', 'block');
-      controlMode = 'MOUSE'; // 마우스 모드로 리셋
-      poseManager.setCameraMode(false); // 마우스용 포즈로 리셋
-      // Reset game states if needed
-      if (ragdoll) ragdoll.reset();
-      if (wallGame) wallGame.createNewWall();
-      return;
+      resetGame();
     }
     
     if (currentState === STATE_POSE_MATCH || currentState === STATE_WALL_APPROACH) {
@@ -492,4 +547,3 @@ function keyPressed() {
     }
   }
 }
-
