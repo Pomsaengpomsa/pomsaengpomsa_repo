@@ -408,9 +408,26 @@ function updateAndDrawTimer() {
 
   // 남은 시간 표시
   push();
-  fill(255);
-  textSize(32);
   textAlign(CENTER, TOP);
+
+  // 10초 이하일 때 경고 효과
+  if (remainingTime > 0 && remainingTime <= 10) {
+    // 화면 가장자리에 붉은색 테두리 깜빡임 효과
+    const alpha = 100 + sin(millis() / 100) * 100; // 0 ~ 200 사이에서 깜빡임
+    noFill();
+    stroke(255, 0, 0, alpha);
+    strokeWeight(20); // 두꺼운 테두리
+    rect(0, 0, width, height);
+
+    // 타이머 텍스트도 붉은색으로 변경하고 크기 키우기
+    fill(255, 100, 100);
+    textSize(36);
+  } else {
+    // 평상시 타이머
+    fill(255);
+    textSize(32);
+  }
+  noStroke(); // 텍스트에는 테두리 없도록
   text(`남은 시간: ${ceil(remainingTime)}초`, width / 2, 20);
   pop();
 }
