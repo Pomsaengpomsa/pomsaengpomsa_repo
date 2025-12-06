@@ -7,7 +7,7 @@ const STATE_ENDING_SCORE = 4; // 게임 종료 상태 추가
 
 // 게임 타이머 관련
 let gameTimer;
-let gameDuration = 5; // 1분 (60초)
+let gameDuration = 60; // 1분 (60초)
 let gameStartTime;
  
 let currentState = STATE_START;
@@ -26,6 +26,10 @@ let ragdoll;
 let poseManager;
 let uiManager;
 let wallGame;
+
+// 점수 관련
+let totalScore = 0;
+let scoreMultiplier = 0.1; // 포즈 모드 점수 배율
 
 // 텍스처
 let grassTexture;
@@ -180,21 +184,17 @@ function draw() {
     wallGame.update();
     wallGame.draw();
 
-    // 래그돌 그리기 추가
-    ragdoll.draw();
-    
     // 카메라 피드 표시
     if (controlMode === 'CAMERA' && cameraController) {
       cameraController.drawVideoFeed();
+      // 캘리브레이션이 안됐을 때 안내
+      if (!cameraController.isCalibrated) drawCalibrationNeeded();
     }
     
     drawBackButton();
-    updateAndDrawTimer(); // 타이머 업데이트 및 표시
-  } else if (currentState === STATE_ENDING_SCORE) {
-    // menuContainer.style('display', 'block');
-    // 게임 종료 화면
-    drawEndingScore(nickname);
-  }
+    if (updateAndDrawTimer()) return; // 타이머 업데이트 및 표시, 게임 종료 시 즉시 반환
+
+  } else if (currentState === STATE_ENDING_SCORE) { drawEndingScore(nickname); }
 }
 
 function drawStartScreen() {
@@ -220,16 +220,9 @@ function startGame() {
     return;
   }
 
-  // 닉네임 중복 확인 로직 (옵션)
-  let scores = LocalStorageManager.getItem('poseGameScores') || [];
-  let isDuplicate = scores.some(score => score.nickname === nickname);
-  if (isDuplicate) {
-    popup.open("오류", "이미 사용중인 닉네임입니다.");
-    return;
-  }
-  
   menuContainer.style('display', 'none');
   controlMode = selectedMode;
+  totalScore = 0; // 게임 시작 시 점수 초기화
 
   // 게임 모드와 관계없이 타이머 시작
   gameStartTime = millis();
@@ -361,9 +354,11 @@ function runPoseMatchGame() {
   uiManager.draw(poseManager);
   
   // 카메라 피드 표시
-  updateAndDrawTimer(); // 타이머 업데이트 및 표시
+  if (updateAndDrawTimer()) return; // 타이머 업데이트 및 표시, 게임 종료 시 즉시 반환
   if (controlMode === 'CAMERA' && cameraController) {
     cameraController.drawVideoFeed();
+    // 캘리브레이션이 안됐을 때 안내
+    if (!cameraController.isCalibrated) drawCalibrationNeeded();
   }
   
   // 카메라 모드 자동 진행 로직
@@ -378,6 +373,11 @@ function runPoseMatchGame() {
       
       // 일정 시간 후 자동으로 다음 포즈
       if (autoProgressTimer >= autoProgressDelay) {
+        // 다음으로 넘어가기 직전의 정확도로 점수 계산
+        let currentScore = poseManager.calculateMatch(ragdoll.joints, ragdoll.angles);
+        let points = currentScore * 1; // 100%일 때 100점
+        totalScore += points;
+
         poseManager.nextPose();
         ragdoll.reset();
         isAutoProgressing = false;
@@ -395,6 +395,20 @@ function runPoseMatchGame() {
   drawBackButton();
 }
 
+function drawCalibrationNeeded() {
+  push();
+  fill(255, 100, 100, 200);
+  noStroke();
+  rectMode(CENTER);
+  rect(width / 2, height / 2, 400, 100, 10);
+  
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(24);
+  text("카메라 인식이 불안정합니다.\nT자 포즈로 캘리브레이션을 다시 진행해주세요.", width / 2, height / 2);
+  pop();
+}
+
 function updateAndDrawTimer() {
   let elapsedTime = (millis() - gameStartTime) / 1000; // 초 단위로 경과 시간 계산
   let remainingTime = gameDuration - elapsedTime;
@@ -402,12 +416,18 @@ function updateAndDrawTimer() {
   if (remainingTime <= 0) {
     remainingTime = 0;
     if (currentState !== STATE_ENDING_SCORE) {
+      wallGame.combo = 0; // 게임 종료 시 콤보 초기화
+      saveScore(nickname, totalScore);
       currentState = STATE_ENDING_SCORE;
+      drawEndingScore(nickname);
+      noLoop(); // draw() 루프를 멈춰서 종료 화면이 한 번만 그려지게 함
+      return true; // 게임이 종료되었음을 알림
     }
   }
 
   // 남은 시간 표시
   push();
+
   textAlign(CENTER, TOP);
 
   // 10초 이하일 때 경고 효과
@@ -430,6 +450,16 @@ function updateAndDrawTimer() {
   noStroke(); // 텍스트에는 테두리 없도록
   text(`남은 시간: ${ceil(remainingTime)}초`, width / 2, 20);
   pop();
+
+  // 총 점수 표시
+  push();
+  fill(255, 220, 0);
+  textSize(28);
+  textAlign(CENTER, TOP);
+  text(`SCORE: ${floor(totalScore)}`, width / 2, 60);
+  pop();
+
+  return false; // 게임이 계속 진행 중임을 알림
 }
 
 function drawBackButton() {
@@ -473,7 +503,9 @@ function resetGame() {
   ragdoll.reset();
   wallGame.createNewWall(); // 벽 게임 상태 리셋
   cameraController.cleanup(); // 카메라 리소스 정리
+  totalScore = 0; // 점수 초기화
   nicknameInput.value(''); // 닉네임 입력 필드 초기화
+  loop(); // 게임을 다시 시작할 때 draw() 루프를 재개
 }
 
 // 마우스 이벤트
@@ -511,6 +543,35 @@ function mousePressed() {
       ragdoll.startDrag(mouseX, mouseY);
     }
   }
+}
+
+function saveScore(nickname, score) {
+  if (!nickname) return;
+  let scores = LocalStorageManager.getItem('poseGameScores') || [];
+  const newScore = floor(score);
+
+  // 해당 닉네임으로 저장된 기존 점수 확인
+  const existingPlayerIndex = scores.findIndex(s => s.nickname === nickname);
+
+  if (existingPlayerIndex !== -1) {
+    // 기존 점수가 있을 경우, 새 점수가 더 높을 때만 갱신
+    if (newScore > scores[existingPlayerIndex].score) {
+      scores[existingPlayerIndex].score = newScore;
+      scores[existingPlayerIndex].date = new Date().toISOString();
+    }
+  } else {
+    // 기존 점수가 없으면 새로 추가
+    scores.push({ nickname: nickname, score: floor(score), date: new Date().toISOString() });
+  }
+
+  // 먼저 현재 플레이어의 점수가 포함된 전체 목록을 저장합니다.
+  LocalStorageManager.setItem('poseGameScores', scores);
+
+  // 점수 순으로 정렬
+  scores.sort((a, b) => b.score - a.score);
+  // 상위 10개만 저장
+  scores = scores.slice(0, 10);
+  return scores; // 업데이트된 점수 목록 반환
 }
 
 function mouseDragged() {
@@ -559,6 +620,12 @@ function keyPressed() {
     
     // N키: 다음 포즈
     if (key === 'n' || key === 'N') {
+      // N키를 눌렀을 때의 정확도를 기준으로 점수 계산
+      let score = poseManager.calculateMatch(ragdoll.joints, ragdoll.angles);
+      // 100%일 때 1000점을 얻도록 점수 계산
+      let points = score * 1; // 100%일 때 100점
+      totalScore += points;
+
       poseManager.nextPose();
       ragdoll.reset();
     }

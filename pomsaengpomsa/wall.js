@@ -8,6 +8,7 @@ class WallGame {
     this.gameState = 'PLAYING'; // 'PLAYING', 'SUCCESS', 'FAIL'
     this.feedbackTimer = 0;
     this.currentPoseIndex = 0;
+    this.combo = 0;
     
     // 래그돌과 포즈 매니저 참조 (전역에서 가져옴)
     this.ragdoll = null;
@@ -29,6 +30,7 @@ class WallGame {
   createNewWall() {
     this.wallScale = 0.0;
     this.gameState = 'PLAYING';
+    // this.combo는 실패 시에만 초기화되므로 여기서는 유지
     this.prepareWallWithHole();
   }
   
@@ -188,10 +190,16 @@ class WallGame {
     
     if (score >= threshold) {
       this.gameState = 'SUCCESS';
+      this.combo++;
+      // 기본 점수 + 콤보 보너스
+      let baseScore = 50;
+      let comboBonus = this.combo * 10;
+      totalScore += baseScore + comboBonus;
       this.feedbackTimer = 90; // 1.5초
     } else {
       this.gameState = 'FAIL';
       this.feedbackTimer = 90;
+      this.combo = 0; // 콤보 초기화
     }
   }
   
@@ -214,6 +222,9 @@ class WallGame {
     // 진행도 바
     if (this.gameState === 'PLAYING') {
       this.drawProgressBar();
+    }
+    if (this.combo > 1) {
+      this.drawCombo();
     }
   }
   
@@ -310,6 +321,21 @@ class WallGame {
     fill(255, 0, 0, 150);
     noStroke();
     rect(0, height - 10, width * this.wallScale, 10);
+    pop();
+  }
+
+  drawCombo() {
+    push();
+    textAlign(LEFT, TOP);
+    textSize(48);
+    fill(255, 220, 0);
+    stroke(0);
+    strokeWeight(4);
+    textStyle(BOLD);
+    // 콤보 텍스트가 흔들리는 효과
+    let shakeX = random(-2, 2);
+    let shakeY = random(-2, 2);
+    text(`${this.combo} COMBO!`, 30 + shakeX, height / 2 + shakeY);
     pop();
   }
 }
