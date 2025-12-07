@@ -29,6 +29,10 @@ let brickTexture;
 let popup;
 let cameraController;
 
+//BGM
+let gameBgm, titleBgm;
+let audioInitialized = false; //오디오 권한 한번 얻기
+
 // 메뉴 요소
 let menuContainer;
 let nicknameInput;
@@ -47,6 +51,8 @@ let isAutoProgressing = false;
 function preload() {
   grassTexture = loadImage('assets/grass.jpeg');
   brickTexture = loadImage('assets/brick.jpg');
+  gameBgm = loadSound("assets/gameBGM.mp3");
+  titleBgm = loadSound("assets/titleBGM.mp3");
 }
 
 // 캠버스 크기 계산 함수
@@ -135,6 +141,11 @@ function setup() {
   
   // 카메라 컨트롤러
   cameraController = new CameraController();
+
+  // // 오디오 자동재생(첫 사용자 입력 이후 자동재생)
+  // userStartAudio().then(() => {
+  //   gameBgm.loop();
+  // });
 }
 
 function draw() {
@@ -238,6 +249,14 @@ function startGame() {
         currentState = STATE_CALIBRATION;
       });
     }
+  }
+
+  //오디오 삽입 - 게임이 시작되면 BGM 전환
+  if (titleBgm && titleBgm.isPlaying()) { //titleBgm이 존재하고 재생 중이라면
+    titleBgm.stop();
+  }
+  if (gameBgm && !gameBgm.isPlaying()) { //gameBgm이 존재하고 재생 중이 아니라면
+    gameBgm.loop();
   }
 }
 
@@ -429,6 +448,8 @@ function mousePressed() {
       menuContainer.style('display', 'block');
       controlMode = 'MOUSE'; // 마우스 모드로 리셋
       poseManager.setCameraMode(false); // 마우스용 포즈로 리셋
+      if (gameBgm && gameBgm.isPlaying()) gameBgm.stop();
+      if (titleBgm && !titleBgm.isPlaying()) titleBgm.loop();
       // Reset game states if needed
       if (ragdoll) ragdoll.reset();
       if (wallGame) wallGame.createNewWall();
@@ -438,6 +459,16 @@ function mousePressed() {
     if (currentState === STATE_POSE_MATCH || currentState === STATE_WALL_APPROACH) {
       ragdoll.startDrag(mouseX, mouseY);
     }
+  }
+
+  //오디오 삽입 - 처음 클릭시 타이틀용 BGM 재생
+  if (!audioInitialized) {
+    userStartAudio().then(() => {
+      audioInitialized = true;
+      if (!titleBgm.isPlaying() && !gameBgm.isPlaying()) {
+        titleBgm.loop();
+      }
+    });
   }
 }
 
