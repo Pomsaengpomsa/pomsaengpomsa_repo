@@ -38,6 +38,12 @@ let brickTexture;
 //화면 객체
 let popup;
 let cameraController;
+let logo;
+let creditScreen;
+
+//BGM
+let gameBgm, titleBgm;
+let audioInitialized = false; //오디오 권한 한번 얻기
 
 // 메뉴 요소
 let menuContainer;
@@ -56,8 +62,11 @@ let autoProgressDelay = 60; // 1초 (60프레임)
 let isAutoProgressing = false;
 
 function preload() {
+  logo = loadImage('assets/digitalLogo.png');
   grassTexture = loadImage('assets/grass.jpeg');
   brickTexture = loadImage('assets/brick.jpg');
+  gameBgm = loadSound("assets/gameBGM.mp3");
+  titleBgm = loadSound("assets/titleBGM.mp3");
 }
 
 // 캠버스 크기 계산 함수
@@ -142,7 +151,11 @@ function setup() {
   // 벽 게임 모드
   wallGame = new WallGame(brickTexture);
 
+  // 팝업창
   popup = new Popup();
+
+  // 크레딧
+  creditScreen = new CreditScreen();
   
   // 카메라 컨트롤러
   cameraController = new CameraController();
@@ -159,27 +172,27 @@ function draw() {
             menuContainer.style('display', 'none');
         }
 
-  } else if (currentState === STATE_CALIBRATION) {
-    // 캘리브레이션 화면
-    if (cameraController) {
-      cameraController.drawCalibrationScreen();
+    } else if (currentState === STATE_CALIBRATION) {
+      // 캘리브레이션 화면
+      if (cameraController) {
+        cameraController.drawCalibrationScreen();
       
-      // 자동 캘리브레이션 체크
-      if (cameraController.checkAutoCalibration()) {
-        currentState = nextStateAfterCalibration; // 설정된 다음 상태로 이동
+        // 자동 캘리브레이션 체크
+        if (cameraController.checkAutoCalibration()) {
+          currentState = nextStateAfterCalibration; // 설정된 다음 상태로 이동
+        }
       }
-    }
-  } else if (currentState === STATE_POSE_MATCH) {
-    runPoseMatchGame();
-  } else if (currentState === STATE_WALL_APPROACH) {
-    // 카메라 모드일 경우 포즈 업데이트
-    if (controlMode === 'CAMERA' && cameraController && cameraController.isCalibrated) {
-      const angles = cameraController.getPoseAngles();
-      if (angles) {
-        ragdoll.angles = angles;
-        ragdoll.updateJoints();
+    } else if (currentState === STATE_POSE_MATCH) {
+      runPoseMatchGame();
+    } else if (currentState === STATE_WALL_APPROACH) {
+      // 카메라 모드일 경우 포즈 업데이트
+      if (controlMode === 'CAMERA' && cameraController && cameraController.isCalibrated) {
+        const angles = cameraController.getPoseAngles();
+        if (angles) {
+          ragdoll.angles = angles;
+          ragdoll.updateJoints();
+        }
       }
-    }
     
     wallGame.update();
     wallGame.draw();
@@ -210,6 +223,8 @@ function drawStartScreen() {
   }
   
   infoButton("i", 50, 50, 25, 100,100,100);
+
+  image(logo, width - (width/12), height/30, 120, 50);
 }
 
 
@@ -249,6 +264,14 @@ function startGame() {
         currentState = STATE_CALIBRATION;
       });
     }
+  }
+
+  //오디오 삽입 - 게임이 시작되면 BGM 전환
+  if (titleBgm && titleBgm.isPlaying()) { //titleBgm이 존재하고 재생 중이라면
+    titleBgm.stop();
+  }
+  if (gameBgm && !gameBgm.isPlaying()) { //gameBgm이 존재하고 재생 중이 아니라면
+    gameBgm.loop();
   }
 }
 
@@ -518,9 +541,17 @@ function mousePressed() {
     let infoBtnDist = dist(mouseX, mouseY, 50, 50) < 25;
     
     if (infoBtnDist) {
-      popup.open("INFORMATION",
-        "Developer\n" +
-        "숭실대학교 디지털미디어학과 25학번 김동민, 이가영, 임소연\n"
+      popup.open("🎮게임설명🎮",
+        "⭐모드 선택⭐\n" +
+        "🖲️마우스 모드 : 캐릭터의 관절(작은 원)을 잡고 마우스로 드래그합니다.\n" +
+        "📸카메라 모드 : 카메라 권한이 필요합니다. 신체의 발 끝까지 화면에 보이도록 서주세요.\n\n" +
+        "⭐맵 선택⭐\n" +
+        "🤸포즈 : 제시되는 자세에 맞게 캐릭터의 포즈를 취해주세요.\n" +
+        "🧱맵 : 다가오는 벽에 뚫려있는 자세에 맞게 캐릭터의 포즈를 취해주세요\n\n\n" +
+        //"Developer\n" +
+        "© 2025. Department of Media Management, Soongsil University\n" +
+        "김동민, 이가영, 임소연. All rights reserved.\n"
+        //숭실대학교 디지털미디어학과 25학번 김동민, 이가영, 임소연\n"
       );
     }
   } else if (currentState === STATE_ENDING_SCORE) {
@@ -542,6 +573,16 @@ function mousePressed() {
     if (currentState === STATE_POSE_MATCH || currentState === STATE_WALL_APPROACH) {
       ragdoll.startDrag(mouseX, mouseY);
     }
+  }
+
+  //오디오 삽입 - 처음 클릭시 타이틀용 BGM 재생
+  if (!audioInitialized) {
+    userStartAudio().then(() => {
+      audioInitialized = true;
+      if (!titleBgm.isPlaying() && !gameBgm.isPlaying()) {
+        titleBgm.loop();
+      }
+    });
   }
 }
 
@@ -628,6 +669,15 @@ function keyPressed() {
 
       poseManager.nextPose();
       ragdoll.reset();
+    }
+  }
+
+  if ((currentState !== STATE_START) && (currentState !== STATE_CREDITS)) {
+    if (key === 'c' || key === 'C') {
+      currentState = STATE_CREDITS;
+      //오디오 삽입 - 게임 종료 후 크레딧 넘어가면 게임bgm 다시 재생
+      gameBgm.stop();
+      gameBgm.loop();
     }
   }
 }
