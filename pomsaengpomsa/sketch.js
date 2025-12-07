@@ -52,7 +52,7 @@ let autoProgressDelay = 60; // 1초 (60프레임)
 let isAutoProgressing = false;
 
 function preload() {
-  logo = loadImage('assets/mediaLogo.png');
+  logo = loadImage('assets/digitalLogo.png');
   grassTexture = loadImage('assets/grass.jpeg');
   brickTexture = loadImage('assets/brick.jpg');
   gameBgm = loadSound("assets/gameBGM.mp3");
@@ -213,7 +213,7 @@ function drawStartScreen() {
   
   infoButton("i", 50, 50, 25, 100,100,100);
 
-  image(logo, width - (width/5), height/30, 200, 40);
+  image(logo, width - (width/12), height/30, 120, 50);
 }
 
 
