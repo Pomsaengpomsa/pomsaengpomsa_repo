@@ -29,7 +29,7 @@ class CreditScreen {
 
       // AI 활용 코드 고지
       { text: "🤖AI 활용 코드 고지🤖", size: 28 },
-      { text: "이 게임의 소스 코드 중 일부(약 80%)는", size: 20 },
+      { text: "이 게임의 소스 코드 중 일부(약40%)는", size: 20 },
       { text: "OpenAI ChatGPT, Google Gemini의 도움을 받아", size: 20 },
       { text: "작성·수정되었습니다.", size: 20 },
       { text: "AI가 제안한 코드는 개발자가 직접 이해·검토 후", size: 20 },
@@ -56,6 +56,9 @@ class CreditScreen {
       // Made in
       { text: "In class Media&Tech, Department of Media Management,", size: 28 },
       { text: "Soongsil University, 2025.", size: 28 },
+      { text: "", size: 100 }, // 로고 위 여백
+
+      { type: "image", asset: "logo", width: 240, height: 100, spacing: 120 }, // 로고 이미지
     ];
   }
 
@@ -67,23 +70,34 @@ class CreditScreen {
   // 매 프레임마다 호출해서 그리기 + 스크롤
   draw() {
     fill(255);
-    textAlign(CENTER, TOP);
+    textAlign(CENTER, CENTER);
 
+    let currentY = this.scrollY;
+    let totalHeight = 0;
+
+    // 크레딧 항목들을 순회하며 그리기
     for (let i = 0; i < this.credits.length; i++) {
       const c = this.credits[i];
-      textSize(c.size);
-      const y = this.scrollY + i * this.lineHeight;
-      text(c.text, width / 2, y);
+
+      if (c.type === "image" && c.asset === "logo") {
+        // 이미지 그리기
+        imageMode(CENTER);
+        image(logo, width / 2, currentY, c.width, c.height);
+        currentY += c.spacing; // 이미지 높이 + 여백만큼 Y 위치 이동
+      } else {
+        // 텍스트 그리기
+        textSize(c.size);
+        text(c.text, width / 2, currentY);
+        currentY += c.size * 1.2; // 텍스트 크기에 비례하여 Y 위치 이동
+      }
     }
+    totalHeight = currentY - this.scrollY; // 전체 크레딧의 높이 계산
 
     // 위로 스크롤
     this.scrollY -= this.scrollSpeed;
 
-    // 전부 지나가면 다시 처음으로 루프시키고 싶으면 아래 유지
-    // 한 번만 보여주고 끝내고 싶으면 이 부분은 빼고,
-    // 게임 쪽에서 상태를 바꿔버리면 됨.
-    const totalHeight = this.scrollY + this.credits.length * this.lineHeight;
-    if (totalHeight < -50) {
+    // 크레딧이 화면 밖으로 완전히 사라지면 초기화
+    if (this.scrollY < -totalHeight) {
       this.reset();
     }
   }

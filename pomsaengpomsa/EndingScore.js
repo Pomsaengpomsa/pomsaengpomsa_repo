@@ -44,10 +44,14 @@ function drawEndingScore(myNickname) {
   textAlign(CENTER);
   text(`내 점수: ${myScore.toLocaleString()}점`, width / 2, height - 170);
   
+  // 버튼 배치
+  const btnY = height - 100;
+  const btnGap = 140; // 버튼 사이 간격
+
   // "처음으로" 버튼
-  let btnX = width / 2;
-  let btnY = height - 100;
-  drawMenuButton("처음으로", btnX, btnY, 100, 200, 255);
+  drawMenuButton("다시하기", width / 2 - btnGap, btnY, 100, 200, 255);
+  // "종료하기" 버튼
+  drawMenuButton("종료하기", width / 2 + btnGap, btnY, 255, 100, 100);
 }
 
 function drawPlayerRank(player, rank, xBase, yPos, myNickname) {

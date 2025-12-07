@@ -4,6 +4,7 @@ const STATE_POSE_MATCH = 1;
 const STATE_WALL_APPROACH = 2;
 const STATE_CALIBRATION = 3;
 const STATE_ENDING_SCORE = 4; // 게임 종료 상태 추가
+const STATE_CREDITS = 5; // 크레딧 상태 추가
 
 // 게임 타이머 관련
 let gameTimer;
@@ -138,7 +139,6 @@ function setup() {
 
   startGameBtn.mousePressed(startGame);
 
-
   // 래그돌 생성 (화면 중앙)
   ragdoll = new Ragdoll(width / 2, height / 2);
   
@@ -207,7 +207,13 @@ function draw() {
     drawBackButton();
     if (updateAndDrawTimer()) return; // 타이머 업데이트 및 표시, 게임 종료 시 즉시 반환
 
-  } else if (currentState === STATE_ENDING_SCORE) { drawEndingScore(nickname); }
+  } else if (currentState === STATE_ENDING_SCORE) { 
+    menuContainer.style('display', 'none');
+    drawEndingScore(nickname); 
+  } else if (currentState === STATE_CREDITS) {
+    menuContainer.style('display', 'none');
+    creditScreen.draw();
+  }
 }
 
 function drawStartScreen() {
@@ -555,14 +561,27 @@ function mousePressed() {
       );
     }
   } else if (currentState === STATE_ENDING_SCORE) {
-    // "처음으로" 버튼 클릭 확인
-    let btnX = width / 2;
-    let btnY = height - 100;
-    let btnW = 240;
-    let btnH = 60;
-    if (mouseX > btnX - btnW / 2 && mouseX < btnX + btnW / 2 &&
+    const btnY = height - 100;
+    const btnW = 240;
+    const btnH = 60;
+    const btnGap = 140;
+
+    // "처음으로" 버튼 영역
+    const startBtnX = width / 2 - btnGap;
+    if (mouseX > startBtnX - btnW / 2 && mouseX < startBtnX + btnW / 2 &&
         mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2) {
       resetGame();
+    }
+
+    // "종료하기" 버튼 영역
+    const exitBtnX = width / 2 + btnGap;
+    if (mouseX > exitBtnX - btnW / 2 && mouseX < exitBtnX + btnW / 2 &&
+        mouseY > btnY - btnH / 2 && mouseY < btnY + btnH / 2) {
+      currentState = STATE_CREDITS;
+      creditScreen.reset(); // 크레딧 스크롤 초기화
+      if (gameBgm && gameBgm.isPlaying()) {
+        gameBgm.stop();
+      }
     }
   } else {
     // 뒤로가기 버튼 (좌상단)
