@@ -462,8 +462,6 @@ function updateAndDrawTimer() {
       wallGame.combo = 0; // 게임 종료 시 콤보 초기화
       saveScore(nickname, totalScore);
       currentState = STATE_ENDING_SCORE;
-      drawEndingScore(nickname);
-      noLoop(); // draw() 루프를 멈춰서 종료 화면이 한 번만 그려지게 함
       return true; // 게임이 종료되었음을 알림
     }
   }
