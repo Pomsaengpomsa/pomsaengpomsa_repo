@@ -230,7 +230,21 @@ function drawStartScreen() {
   
   infoButton("i", 50, 50, 25, 100,100,100);
 
-  image(logo, width - (width/12), height/30, 120, 50);
+  // 로고 이미지 그리기 및 호버 효과
+  let logoX = width - 120;
+  let logoY = height / 30;
+  let logoW = 120;
+  let logoH = 50;
+
+  if (mouseX > logoX && mouseX < logoX + logoW && mouseY > logoY && mouseY < logoY + logoH) {
+    tint(255, 220); // 호버 시 이미지를 약간 밝게 처리
+    cursor(HAND);
+  } else {
+    noTint(); // 호버하지 않을 때 틴트 효과 제거
+  }
+
+  image(logo, logoX, logoY, logoW, logoH);
+  noTint(); // 다른 이미지에 영향을 주지 않도록 틴트 초기화
 }
 
 
@@ -559,6 +573,16 @@ function mousePressed() {
         "김동민, 이가영, 임소연. All rights reserved.\n"
         //숭실대학교 디지털미디어학과 25학번 김동민, 이가영, 임소연\n"
       );
+    }
+
+    // 로고 클릭 확인
+    let logoX = width - 120;
+    let logoY = height / 30;
+    let logoW = 120;
+    let logoH = 50;
+
+    if (mouseX > logoX && mouseX < logoX + logoW && mouseY > logoY && mouseY < logoY + logoH) {
+      window.open('https://mediamba.ssu.ac.kr/', '_blank');
     }
   } else if (currentState === STATE_ENDING_SCORE) {
     const btnY = height - 100;
