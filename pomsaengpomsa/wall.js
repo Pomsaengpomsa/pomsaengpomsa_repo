@@ -311,7 +311,7 @@ class WallGame {
       textSize(width * 0.025); // 반응형 크기
       noStroke();
       fill(255);
-      text("포즈를 다시 맞춰보세요!", width/2, height/2 + 20);
+      text("점수를 획득하지 못했어요 😥", width/2, height/2 + 20);
     }
     pop();
   }
