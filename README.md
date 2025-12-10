@@ -4,6 +4,14 @@
   <img src="pomsaengpomsa/assets/logo.png" alt="폼생폼사 로고" width="500"/>
 </div>
 
+<div align="center">
+  <a href="[YOUR_GAME_LINK_HERE](https://pomsaengpomsa.github.io/pomsaengpomsa_repo/pomsaengpomsa/)">
+    <img src="https://img.shields.io/badge/🎮_게임_시작하기-Click_Here!-blue?style=for-the-badge&logo=p5.js" alt="게임 시작하기 버튼"/>
+  </a>
+</div>
+
+<br>
+
 **p5.js로 구현된 인터랙티브 포즈 맞추기 게임! 마우스 또는 웹캠을 사용하여 캐릭터를 조종하고, 제한 시간 안에 다양한 포즈를 완성하여 최고 점수에 도전하세요!**
 
 <br>
