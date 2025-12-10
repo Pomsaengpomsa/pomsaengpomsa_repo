@@ -1,69 +1,52 @@
-# pomsaengpomsa_repo
-폼생폼사 p5.js 게임 레포
+# 🤸 7조 폼생폼사 (Pomsaengpomsa) 🤸
 
-# Welcome to p5.js
+<div align="center">
+  <img src="pomsaengpomsa/assets/logo.png" alt="폼생폼사 로고" width="500"/>
+</div>
 
-You have downloaded the complete p5.js library ZIP file, yay!
+**p5.js로 구현된 인터랙티브 포즈 맞추기 게임! 마우스 또는 웹캠을 사용하여 캐릭터를 조종하고, 제한 시간 안에 다양한 포즈를 완성하여 최고 점수에 도전하세요!**
 
-# Contents of the p5 folder
+<br>
 
-* p5.js file
-* p5.min.js file
-* addons folder
-  * p5.sound.js
-  * p5.sound.min.js
-* empty-example folder
-  * index.html
-  * p5.js
-  * p5.sound.js
-  * sketch.js
+## 🧑‍💻 개발자 (Developers)
 
-## p5.js
+*   김동민
+*   이가영
+*   임소연
 
-This file stores the complete p5.js library. It is easy to read by humans, so feel free to open it and explore its contents. It also has a friendly error system, which helps new programmers with common user errors.
+## ✨ 주요 기능 (Features)
 
-## p5.min.js
+*   **✌️ 두 가지 게임 모드**:
+    *   **포즈 맞추기**: 화면에 제시되는 목표 포즈를 정확하게 따라 하세요.
+    *   **벽 통과하기**: 다가오는 벽의 구멍 모양에 맞게 캐릭터의 자세를 만드세요.
+*   **🕹️ 두 가지 조작 방식**:
+    *   **마우스 모드**: 캐릭터의 관절을 직접 클릭하고 드래그하여 포즈를 만듭니다.
+    *   **카메라 모드**: 웹캠으로 플레이어의 신체를 인식하여 캐릭터를 실시간으로 조종합니다. (T-포즈 캘리브레이션 필요)
+*   **🏃‍♂️ 래그돌(Ragdoll) 캐릭터**: 물리 기반으로 움직이는 래그돌 캐릭터를 조종하는 재미를 느껴보세요.
+*   **🏆 점수 및 랭킹 시스템**:
+    *   포즈의 정확도에 따라 실시간으로 점수가 계산됩니다.
+    *   게임 종료 후 닉네임과 함께 점수가 기록되며, 로컬 저장소를 통해 상위 10위까지 랭킹을 확인할 수 있습니다.
 
-This file is a minified version of the p5.js file. It is a lighter version, with the same functionalities, but smaller file size. This minified version is harder to read for humans, and does not include the friendly error system.
+## 🎮 게임 방법 (How to Play)
 
-## addons folder
+1.  **시작 화면**에서 닉네임을 입력하세요.
+2.  **조작 방식**을 선택하세요. (`마우스` 또는 `카메라`)
+3.  **게임 맵**을 선택하세요. (`포즈` 또는 `벽`)
+4.  **게임 시작** 버튼을 눌러 게임을 시작합니다.
+    *   `카메라` 모드 선택 시, 화면 안내에 따라 양팔을 벌린 T-포즈로 캘리브레이션을 진행해야 합니다.
+5.  **60초**의 제한 시간 동안 최대한 높은 점수를 획득하세요!
+6.  게임이 종료되면 최종 점수를 확인하고, `처음으로` 돌아가거나 `크레딧`을 볼 수 있습니다.
 
-The addons folder includes additional p5.js related libraries, in both original versions and minified versions.
+## 🛠️ 기술 스택 및 주요 구현 (Tech Stack & Implementation)
 
-### p5.sound.js, p5.sound.min.js
+*   **엔진/라이브러리**: **p5.js**
+*   **언어**: **JavaScript**, **HTML5**, **CSS**
 
-p5.sound extends p5.js with Web Audio functionality including audio input, playback, analysis, and synthesis.
+### 🤖 AI 활용 코드 고지
 
-## empty-example folder
+> 이 게임의 소스 코드 중 일부(약 40%)는 **OpenAI ChatGPT**, **Google Gemini**의 도움을 받아 작성·수정되었습니다. AI가 제안한 코드는 개발자가 직접 이해하고 검토한 후 프로젝트에 맞게 수정하여 반영하였습니다.
 
-This is an empty example of a website. The folder includes the file for the website, index.html, the p5.js library, other related p5.js libraries, and a template starting point for your p5.js sketch, called sketch.js.
+<br>
 
-### index.html
+> In class Media&Tech, Department of Media Management, Soongsil University, 2025.
 
-index.html is a template for an HTML file. This index.html first imports the libraries included in the folder (p5.js, p5.sound.js) then loads and executes the file sketch.js which is where you can write your own code.
-
-### sketch.js
-
-The sketch.js is a template for the p5.js sketch, with the functions setup() and draw() that you can complete.
-
-## README.txt
-
-This README file formatted with Markdown :)
-
-# What's next?
-
-If you need more information to help get you started, please refer to our website:  
-https://p5js.org/tutorials/get-started/ and https://p5js.org/tutorials/
-
-An online reference to the p5.js library is available here:  
-https://p5js.org/reference/
-
-In order to run your website (including the empty-example), you need to enable a local server, please see this tutorial in our wiki:  
-https://github.com/processing/p5.js/wiki/Local-server
-
-p5.js is a community and p5.js is built by contributions. If you want to learn more about us, visit:  
-https://p5js.org/community/
-
-# License
-
-The p5.js library is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation, version 2.1.
