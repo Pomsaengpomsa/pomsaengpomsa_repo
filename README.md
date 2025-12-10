@@ -5,7 +5,7 @@
 </div>
 
 <div align="center">
-  <a href="[YOUR_GAME_LINK_HERE](https://pomsaengpomsa.github.io/pomsaengpomsa_repo/pomsaengpomsa/)">
+  <a href="(https://pomsaengpomsa.github.io/pomsaengpomsa_repo/pomsaengpomsa/)">
     <img src="https://img.shields.io/badge/🎮_게임_시작하기-Click_Here!-blue?style=for-the-badge&logo=p5.js" alt="게임 시작하기 버튼"/>
   </a>
 </div>
